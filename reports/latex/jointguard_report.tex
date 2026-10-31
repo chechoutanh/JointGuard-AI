@@ -313,13 +313,14 @@ are wrong; the diagnosis is only as trustworthy as the alarm before it.
 
 \section{Reproducibility, materials and use of AI}
 Seed 20261024; Python 3.13, NumPy 2.5.4, pandas 3.1.0, scikit-learn 1.9.1. The full pipeline, including the diagnosis
-stage, runs with \texttt{python -m scripts.run\_pipeline --mode standard}; 31 automated tests cover physics, data
+stage, runs with \texttt{python -m scripts.run\_pipeline -{}-mode standard}; 31 automated tests cover physics, data
 leakage, causality, online/offline consistency and the evaluation rules.
 
 \begin{center}
 \begin{tabularx}{.92\linewidth}{lX}
 \toprule
 Source code & \url{https://github.com/chechoutanh/JointGuard-AI} \\
+Project web page & \url{https://jointguardai.vercel.app/} \\
 Detailed results report & \href{https://github.com/chechoutanh/JointGuard-AI/blob/main/reports/standard/report_en.md}{\texttt{reports/standard/report\_en.md} on GitHub} \\
 \bottomrule
 \end{tabularx}

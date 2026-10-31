@@ -11,8 +11,8 @@ JointGuard AI is an independent research project by **Tuan Anh Nguyen**. It simu
 
 | | |
 |---|---|
-| Project web page (interactive demo) | https://chechoutanh.github.io/JointGuard-AI/ |
-| Technical report (LaTeX, PDF) | *add link*. Source: [`reports/latex/jointguard_report.tex`](reports/latex/jointguard_report.tex) |
+| Project web page (interactive demo) | https://jointguardai.vercel.app/ |
+| Technical report (PDF) | [`reports/latex/jointguard_report.pdf`](reports/latex/jointguard_report.pdf). LaTeX source: [`jointguard_report.tex`](reports/latex/jointguard_report.tex) |
 | Detailed results report | [`reports/standard/report_en.md`](reports/standard/report_en.md) (English), [`report_vi.md`](reports/standard/report_vi.md) (Vietnamese) |
 | Vietnamese README | [`README_vi.md`](README_vi.md) |
 
@@ -309,7 +309,7 @@ Simulated time follows the wall clock. If the computer cannot keep up, the windo
 
 The **web page** in `web/` replays recorded runs that were produced by the same simulator and models (`export_web_demo`).
 
-- It is published to https://chechoutanh.github.io/JointGuard-AI/ by `.github/workflows/pages.yml` on every push that changes `web/`.
+- It is published at https://jointguardai.vercel.app/ (the `web/` folder is deployed as a static site).
 - To view it locally, serve the folder with `python -m http.server -d web 8000` and open `http://localhost:8000`. Opening the file directly does not work, because the browser blocks the page from loading `demo_runs.json`.
 
 ---
