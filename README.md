@@ -11,7 +11,7 @@ JointGuard AI is an independent research project by **Tuan Anh Nguyen**. It simu
 
 | | |
 |---|---|
-| Project web page (interactive demo) | *add link* |
+| Project web page (interactive demo) | https://chechoutanh.github.io/JointGuard-AI/ |
 | Technical report (LaTeX, PDF) | *add link*. Source: [`reports/latex/jointguard_report.tex`](reports/latex/jointguard_report.tex) |
 | Detailed results report | [`reports/standard/report_en.md`](reports/standard/report_en.md) (English), [`report_vi.md`](reports/standard/report_vi.md) (Vietnamese) |
 | Vietnamese README | [`README_vi.md`](README_vi.md) |
@@ -307,7 +307,10 @@ Fault keys only change the friction parameter inside the physics model. Alarms c
 
 Simulated time follows the wall clock. If the computer cannot keep up, the window shows **NOT REAL-TIME**. On macOS, run it from Terminal if no window appears. On a machine without a display, use `demo_headless_check`.
 
-The **web page** in `web/` replays recorded runs that were produced by the same simulator and models (`export_web_demo`). Serve the folder with any static file server, for example `python -m http.server -d web`, and open `http://localhost:8000`.
+The **web page** in `web/` replays recorded runs that were produced by the same simulator and models (`export_web_demo`).
+
+- It is published to https://chechoutanh.github.io/JointGuard-AI/ by `.github/workflows/pages.yml` on every push that changes `web/`.
+- To view it locally, serve the folder with `python -m http.server -d web 8000` and open `http://localhost:8000`. Opening the file directly does not work, because the browser blocks the page from loading `demo_runs.json`.
 
 ---
 
