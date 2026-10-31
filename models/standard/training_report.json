@@ -1,0 +1,338 @@
+{
+  "rf_selection": [
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9226222509249994
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9204664187504094
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.9209495867680496
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.9180074576649875
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9173928012364503
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9157119346021367
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.9199831506810381
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.916039081039439
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9159444073485706
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9146181877898255
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.9171995197096707
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.9145712778993023
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9125015370138713
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9101458573067627
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.9143918428004637
+    },
+    {
+      "window_s": 0.5,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.912723605844754
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9271237705755895
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9194310724855146
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.913241229316136
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.9057293124006746
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9263164181597483
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9195084029030591
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.9167859353787216
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "None",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.907168942291111
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9252343898699072
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9198910391213695
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.9149755677835011
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "2",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.9056608742939486
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "None",
+      "val_ap": 0.9231167524697308
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "sqrt",
+      "class_weight": "balanced",
+      "val_ap": 0.9223301793057357
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "None",
+      "val_ap": 0.9192360802340706
+    },
+    {
+      "window_s": 1.0,
+      "n_estimators": "200",
+      "max_depth": "14",
+      "min_samples_leaf": "8",
+      "max_features": "0.5",
+      "class_weight": "balanced",
+      "val_ap": 0.9086775233058705
+    }
+  ],
+  "rf_best": {
+    "window_s": 1.0,
+    "params": {
+      "n_estimators": 200,
+      "max_depth": null,
+      "min_samples_leaf": 2,
+      "max_features": "sqrt",
+      "class_weight": null
+    },
+    "val_ap": 0.9271237705755895
+  },
+  "rf_operating_point": {
+    "threshold": 0.4,
+    "n_on": 8.0,
+    "f1": 0.7650814332247556,
+    "fa_per_min": 0.49201415420497374,
+    "detection_rate": 0.90625,
+    "delay_median": 2.1330618607927754
+  },
+  "baseline": {
+    "window_s": 0.5,
+    "ref": [
+      0.009458402537349996,
+      0.0166462205175
+    ],
+    "threshold": 1.1,
+    "n_on": 8,
+    "n_off": 5,
+    "stride_s": 0.1,
+    "monitor_start_s": 2.0,
+    "f_sample": 100
+  },
+  "baseline_operating_point": {
+    "threshold": 1.1,
+    "n_on": 8.0,
+    "f1": 0.3674386450051849,
+    "fa_per_min": 0.393611323363979,
+    "detection_rate": 0.46875,
+    "delay_median": 2.981490497905426
+  },
+  "versions": {
+    "python": "3.13.17",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scikit-learn": "1.9.1"
+  }
+}

@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+logs/
+results/demo_logs/
+
+# Raw simulated signals are large and can be regenerated exactly from the manifests
+data/*/signals/
+data/*/truth/
+data/*/features/
+*.zip
+*.tmp
+
+# Local-only: older/extra runs that are not part of the reported results
+models/standard`/
+data/standard_regen`/
+data/standard_v2/

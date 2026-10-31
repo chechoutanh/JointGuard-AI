@@ -1,0 +1,876 @@
+<title>JointGuard AI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A simulation study: detecting abnormal joint friction on a 2-joint robot arm with a Random Forest, without false alarms when the arm is simply loaded or fast.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an engineering lab notebook. One live instrument panel up top, then each
+   stage of the pipeline gets its own figure, read top to bottom in pipeline order. */
+:root {
+  --bg: #f2f4f6;
+  --surface: #ffffff;
+  --sunk: #e9edf1;
+  --ink: #15202b;
+  --muted: #5b6977;
+  --line: #d3dae1;
+  --j1: #2a6cb0;
+  --j2: #c27410;
+  --score: #7a46c0;
+  --alarm: #c53030;
+  --alarm-soft: rgba(197, 48, 48, .12);
+  --ok: #2a8452;
+  --warn: #a77f00;
+  --truth: #fbf3e1;
+  --truth-ink: #6d5313;
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --surface: #161e27; --sunk: #1c2631; --ink: #e3e8ee; --muted: #93a1b0; --line: #2a3542;
+    --j1: #6ba7ea; --j2: #f0a548; --score: #b48df3; --alarm: #ff6a62; --alarm-soft: rgba(255, 106, 98, .16);
+    --ok: #4cc283; --warn: #e3bf48; --truth: #28221a; --truth-ink: #e7c87e; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --surface: #161e27; --sunk: #1c2631; --ink: #e3e8ee; --muted: #93a1b0; --line: #2a3542;
+  --j1: #6ba7ea; --j2: #f0a548; --score: #b48df3; --alarm: #ff6a62; --alarm-soft: rgba(255, 106, 98, .16);
+  --ok: #4cc283; --warn: #e3bf48; --truth: #28221a; --truth-ink: #e7c87e; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 16px/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); font-stretch: 80%; line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.1rem, 5.2vw, 3.6rem); font-weight: 800; letter-spacing: -.01em; }
+h2 { font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 750; }
+h3 { font-size: 1.15rem; font-weight: 700; font-stretch: 90%; }
+p { margin: 0; max-width: 66ch; }
+a { color: var(--j1); }
+code, .mono { font-family: var(--f-mono); font-size: .88em; }
+.num { font-variant-numeric: tabular-nums; }
+.label {
+  font: 500 .72rem/1.2 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+:focus-visible { outline: 2px solid var(--j1); outline-offset: 2px; }
+
+/* top bar */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-block: 18px; border-bottom: 1px solid var(--line); }
+.top b { font: 700 1rem var(--f-display); font-stretch: 85%; letter-spacing: .01em; }
+.top nav { display: flex; gap: 14px; flex-wrap: wrap; font-size: .88rem; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover { color: var(--ink); }
+
+/* hero */
+.hero { display: grid; gap: 18px; padding-block: 44px 26px; }
+.hero p.lede { font-size: 1.12rem; color: var(--ink); }
+.hero .sim-note { display: inline-flex; gap: 8px; align-items: baseline; color: var(--truth-ink); background: var(--truth); padding: 6px 10px; border-radius: 4px; font-size: .9rem; max-width: max-content; }
+
+/* viewing guide */
+.guide { display: grid; gap: 12px; margin-bottom: 14px; }
+.guide ol { margin: 0; padding: 0; list-style: none; counter-reset: g; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.guide li { counter-increment: g; position: relative; padding-left: 2.4rem; min-width: 0; font-size: .9rem; line-height: 1.55; color: var(--muted); }
+.guide li::before { content: counter(g); position: absolute; left: 0; top: 0; font: 700 .8rem/1.7rem var(--f-mono); width: 1.7rem; height: 1.7rem; text-align: center; border-radius: 50%; background: var(--ink); color: var(--surface); }
+.guide li b { color: var(--ink); font-weight: 600; }
+.guide p { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; max-width: none; }
+.tour { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 760px) { .guide ol { grid-template-columns: minmax(0, 1fr); } }
+
+/* instrument panel */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font: 500 .86rem var(--f-body); color: var(--ink); background: var(--sunk); border: 1px solid transparent;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+}
+.chip:hover { border-color: var(--line); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.scen-desc { color: var(--muted); font-size: .92rem; min-height: 1.5em; }
+.stage { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 14px; }
+.robot-box { background: var(--sunk); border-radius: 8px; position: relative; min-width: 0; }
+.robot-box canvas { width: 100%; aspect-ratio: 1 / 1; display: block; }
+.robot-box .cap { position: absolute; left: 10px; bottom: 8px; right: 10px; font-size: .74rem; color: var(--muted); }
+.charts { display: grid; gap: 8px; min-width: 0; }
+.chart { background: var(--sunk); border-radius: 8px; padding: 8px 10px 4px; min-width: 0; }
+.chart header { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; flex-wrap: wrap; }
+.chart header b { font-weight: 600; }
+.chart canvas { width: 100%; height: 104px; display: block; }
+.key { display: inline-flex; gap: 10px; color: var(--muted); }
+.key i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+
+.readouts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ai, .truth { border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.ai { background: var(--sunk); }
+.truth { background: var(--truth); color: var(--truth-ink); }
+.truth .label { color: var(--truth-ink); }
+.status { font: 800 1.7rem/1.1 var(--f-display); font-stretch: 78%; letter-spacing: .01em; }
+.status.s-warm { color: var(--muted); } .status.s-ok { color: var(--ok); }
+.status.s-sus { color: var(--warn); } .status.s-alarm { color: var(--alarm); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; font-size: .86rem; }
+.kv dt { color: inherit; opacity: .75; } .kv dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+.transport { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.btn {
+  font: 600 .9rem var(--f-body); background: var(--ink); color: var(--surface); border: 0; border-radius: 6px;
+  padding: 8px 16px; cursor: pointer; min-width: 88px;
+}
+.btn.ghost { background: var(--sunk); color: var(--ink); min-width: 0; padding: 8px 12px; }
+.btn.ghost[aria-pressed="true"] { outline: 1.5px solid var(--ink); }
+.transport input[type=range] { flex: 1 1 200px; accent-color: var(--ink); min-width: 0; }
+.clock { font: 500 .9rem var(--f-mono); font-variant-numeric: tabular-nums; min-width: 7.5ch; }
+
+/* sections */
+section.step { padding-block: 56px 8px; display: grid; gap: 22px; border-top: 1px solid var(--line); margin-top: 48px; }
+.step-head { display: grid; gap: 10px; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.prose { display: grid; gap: 14px; }
+.figure { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.figure figcaption { font-size: .85rem; color: var(--muted); }
+.eq { font: 400 1rem/1.5 var(--f-body); background: var(--sunk); padding: 6px 14px; border-radius: 6px; overflow-x: auto; overflow-y: hidden; }
+.eq mjx-container[display="true"] { margin: .6em 0 !important; }
+
+.files { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.file { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; min-width: 0; text-decoration: none; color: var(--ink); }
+a.file:hover { border-color: var(--ink); }
+.file b { font-weight: 600; }
+.file span { font-size: .86rem; color: var(--muted); overflow-wrap: anywhere; }
+.file em { font: 500 .78rem var(--f-mono); font-style: normal; color: var(--j1); }
+.file.empty em { color: var(--muted); }
+@media (max-width: 760px) { .files { grid-template-columns: minmax(0, 1fr); } }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; color: var(--muted); font-size: .8rem; }
+td.r, th.r { text-align: right; }
+
+.timing { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.timing div { background: var(--sunk); border-radius: 6px; padding: 10px 12px; }
+.timing b { display: block; font: 700 1.3rem var(--f-display); font-stretch: 85%; }
+.timing span { font-size: .8rem; color: var(--muted); }
+
+.slider-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: .9rem; }
+.slider-row input { flex: 1 1 180px; accent-color: var(--alarm); }
+canvas.fig { width: 100%; display: block; }
+
+.toggle { display: inline-flex; background: var(--sunk); border-radius: 6px; padding: 3px; gap: 3px; }
+.toggle button { font: 500 .85rem var(--f-body); border: 0; background: transparent; color: var(--ink); padding: 5px 12px; border-radius: 4px; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .82rem; color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+.never { display: flex; flex-wrap: wrap; gap: 6px; }
+.never span { font: 500 .78rem var(--f-mono); padding: 3px 8px; border-radius: 4px; background: var(--sunk); color: var(--muted); text-decoration: line-through; }
+
+.imp { display: grid; gap: 6px; }
+.imp-row { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 3.2rem; gap: 10px; align-items: center; font-size: .84rem; }
+.imp-row .bar { height: 10px; border-radius: 2px; }
+.imp-row .v { font-family: var(--f-mono); text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.strip { position: relative; display: flex; align-items: flex-end; gap: 2px; height: 150px; padding-top: 18px; }
+.strip .w { flex: 1 1 0; min-width: 0; position: relative; height: 100%; display: flex; align-items: flex-end; }
+.strip .w i { display: block; width: 100%; border-radius: 2px 2px 0 0; background: var(--line); }
+.strip .w.pos i { background: var(--score); }
+.strip .w.on i { background: var(--alarm); }
+.strip .w em { position: absolute; top: -16px; left: 0; right: 0; text-align: center; font: 500 .62rem var(--f-mono); font-style: normal; color: var(--muted); }
+.strip .thr { position: absolute; left: 0; right: 0; border-top: 1.5px dashed var(--warn); pointer-events: none; }
+.strip .mark { position: absolute; top: 0; bottom: 0; border-left: 1.5px solid var(--ink); pointer-events: none; }
+.strip .mark span { position: absolute; top: -2px; left: 4px; font: 500 .7rem var(--f-mono); white-space: nowrap; background: var(--surface); padding: 0 3px; }
+.strip-axis { display: flex; justify-content: space-between; font: .72rem var(--f-mono); color: var(--muted); }
+
+.results { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.res-block { display: grid; gap: 10px; }
+.res-row { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 4.6rem; gap: 10px; align-items: center; font-size: .85rem; }
+.res-row .track { background: var(--sunk); height: 16px; border-radius: 3px; overflow: hidden; }
+.res-row .fill { height: 100%; }
+.res-row .v { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.fill.rf { background: var(--ink); } .fill.bl { background: var(--muted); opacity: .55; }
+.fill.fa { background: var(--alarm); } .fill.fa.bl { background: var(--alarm); opacity: .45; }
+
+.qs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.q.now { border-color: var(--ok); box-shadow: inset 0 3px 0 var(--ok); }
+.q .pill { justify-self: start; font: 500 .72rem var(--f-mono); letter-spacing: .04em; padding: 3px 8px; border-radius: 999px; background: var(--sunk); color: var(--muted); }
+.q.now .pill { background: var(--ok); color: var(--surface); }
+.q .ev { font-size: .86rem; color: var(--muted); }
+@media (max-width: 860px) { .qs { grid-template-columns: minmax(0, 1fr); } }
+.roles { display: grid; gap: 18px; min-width: 0; }
+.roles > div { display: grid; gap: 4px; padding-left: 14px; border-left: 2px solid var(--line); }
+ul.limits { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; max-width: 70ch; }
+pre.cmd { font: .84rem/1.6 var(--f-mono); background: var(--sunk); padding: 12px 14px; border-radius: 6px; overflow-x: auto; margin: 0; }
+footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+
+@media (max-width: 860px) {
+  .stage, .two, .results { grid-template-columns: minmax(0, 1fr); }
+  .robot-box canvas { aspect-ratio: 4 / 3; }
+}
+@media (max-width: 520px) {
+  .readouts { grid-template-columns: minmax(0, 1fr); }
+  .timing { grid-template-columns: minmax(0, 1fr); }
+  .imp-row { grid-template-columns: minmax(0, 1fr) 3rem; }
+  .imp-row .bar-wrap { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <b>JointGuard AI</b>
+    <nav aria-label="Sections">
+      <a href="#questions">Scope</a><a href="#arm">The arm</a><a href="#fault">The fault</a><a href="#hard">Why it's hard</a>
+      <a href="#features">What the AI reads</a><a href="#alarm">Alarm rule</a><a href="#diagnosis">Diagnosis</a><a href="#results">Results</a><a href="#limits">Limits</a><a href="#built">My role</a><a href="#files">Files</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <span class="label">JointGuard AI · independent research project by Tuan Anh Nguyen · simulation study</span>
+    <h1>Can a robot arm notice that one of its joints is getting stiff?</h1>
+    <p class="lede">I simulated a two-joint robot arm from its equations of motion and trained a Random Forest that watches only joint torque and tracking error. It should raise an alarm when a joint's friction rises abnormally, and stay quiet when the arm is healthy but carries a heavier load or moves faster. Once the alarm is on, a second stage names the joint and estimates how much its friction has risen.</p>
+    <span class="sim-note"><b>Note</b> All data is simulated. Nothing here has been validated on a physical robot.</span>
+  </section>
+
+  <div class="guide">
+    <ol>
+      <li><b>Pick a scenario</b> below. Each is a 30-second recorded run that starts playing.</li>
+      <li><b>Watch the purple score</b> in the bottom chart. When it stays above the dashed line for 0.8 s, the alarm turns on and the chart turns red.</li>
+      <li><b>Compare the two boxes</b> under the charts. The grey one is what the AI concludes. The yellow one is the simulator's truth, which the AI never sees.</li>
+    </ol>
+    <p><span class="label">Short on time? Watch these three, about 2 minutes</span>
+      <span class="tour"><button type="button" class="chip" data-go="abrupt_j2">1 · A fault it catches</button><button type="button" class="chip" data-go="heavy">2 · A heavy load it ignores</button><button type="button" class="chip" data-go="fast">3 · Where it fails</button></span>
+    </p>
+  </div>
+
+  <div class="panel" id="player">
+    <div class="chips" role="group" aria-label="Scenario" id="chips"></div>
+    <p class="scen-desc" id="scenDesc">Loading recorded runs…</p>
+    <div class="stage">
+      <div class="robot-box">
+        <canvas id="robot" aria-label="Robot arm animation"></canvas>
+        <span class="cap">Dotted: target tip path · solid: actual tip trail (4 s) · joint ring colour shows injected friction (simulator truth)</span>
+      </div>
+      <div class="charts">
+        <div class="chart"><header><b>Applied joint torque</b><span class="key"><span><i style="background:var(--j1)"></i>joint 1</span><span><i style="background:var(--j2)"></i>joint 2</span><span>N·m</span></span></header><canvas id="cTau"></canvas></div>
+        <div class="chart"><header><b>Tracking error (target − measured)</b><span class="key"><span><i style="background:var(--j1)"></i>joint 1</span><span><i style="background:var(--j2)"></i>joint 2</span><span>mrad</span></span></header><canvas id="cErr"></canvas></div>
+        <div class="chart"><header><b>Model score</b><span class="key"><span><i style="background:var(--score)"></i>score</span><span><i style="background:var(--warn)"></i>threshold 0.40</span><span><i style="background:var(--alarm);opacity:.5"></i>alarm on</span></span></header><canvas id="cScore"></canvas></div>
+      </div>
+    </div>
+    <div class="readouts">
+      <div class="ai">
+        <span class="label">AI prediction</span>
+        <span class="status s-warm" id="aiStatus">WARMING UP</span>
+        <dl class="kv"><dt>Score</dt><dd id="aiScore">–</dd><dt>Alarms this run</dt><dd id="aiCount">0</dd><dt>Diagnosis</dt><dd id="aiDiag">–</dd></dl>
+      </div>
+      <div class="truth">
+        <span class="label">Simulator ground truth · not an AI input</span>
+        <dl class="kv">
+          <dt>Friction multiplier</dt><dd id="gtMult">j1 1.00 · j2 1.00</dd>
+          <dt>Label</dt><dd id="gtLabel">normal</dd>
+          <dt>Payload · speed</dt><dd id="gtLoad">–</dd>
+          <dt>Detection delay</dt><dd id="gtDelay">–</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="btn" id="play" type="button">Play</button>
+      <input type="range" id="scrub" min="0" max="30" step="0.05" value="0" aria-label="Time">
+      <span class="clock" id="clock">t = 0.0 s</span>
+      <span class="toggle" role="group" aria-label="Playback speed" id="speeds">
+        <button type="button" data-s="1" aria-pressed="true">1×</button><button type="button" data-s="2" aria-pressed="false">2×</button><button type="button" data-s="4" aria-pressed="false">4×</button>
+      </span>
+    </div>
+  </div>
+  <p style="margin-top:10px;font-size:.85rem;color:var(--muted)">These are recorded runs, replayed in your browser. Each was produced by the project's own simulator and the trained model (<code>python -m scripts.export_web_demo</code>), the same code path as the interactive desktop demo.</p>
+
+  <section class="step" id="questions">
+    <div class="step-head"><span class="label">Scope</span><h2>One problem, three separate questions</h2></div>
+    <div class="prose">
+      <p>My first version tried to go straight from sensor data to maintenance advice, and the advice came out as little more than "check the joint". I split the problem into three questions. Each needs a different kind of evidence, so I am working on them one at a time. This page covers the first two.</p>
+    </div>
+    <div class="qs">
+      <div class="q now">
+        <span class="pill">Working in simulation</span>
+        <h3>1 · Detect</h3>
+        <p>Is a joint behaving abnormally, or is the arm just heavier or faster than usual?</p>
+        <p class="ev">Evidence: joint torque and tracking error, in a controlled simulation where one variable (friction) is changed at a time.</p>
+      </div>
+      <div class="q now">
+        <span class="pill">Working in simulation</span>
+        <h3>2 · Diagnose</h3>
+        <p>Which joint, and how much has its friction changed?</p>
+        <p class="ev">Evidence: the same signals, read per joint. A second stage runs only while the alarm is on and reports the joint and an estimated friction increase (Stage 6).</p>
+      </div>
+      <div class="q">
+        <span class="pill">Not addressed</span>
+        <h3>3 · Estimate wear</h3>
+        <p>How fast is a part degrading, and how long until it fails?</p>
+        <p class="ev">This needs run-to-failure data recorded over a part's whole life. Sudden faults in a simulator cannot answer it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section class="step" id="arm">
+    <div class="step-head"><span class="label">Stage 1 · Physics</span><h2>A two-joint arm, simulated from its equations of motion</h2></div>
+    <div class="two">
+      <div class="prose">
+        <p>The arm moves in a vertical plane, so gravity matters. Its motion is never drawn from the target path. Each millisecond the simulator solves the equation below for the joint accelerations and integrates them with a fourth-order Runge–Kutta step.</p>
+        <div class="eq">\[ M(q)\,\ddot q + C(q,\dot q)\,\dot q + G(q) + \tau_f(\dot q) = \tau_{\text{applied}} \]</div>
+        <p>M is the inertia matrix, C holds Coriolis and centrifugal terms, G is gravity and τ<sub>f</sub> is joint friction. A payload at the tip is merged into link 2 so it changes both inertia and gravity consistently.</p>
+        <p>A PD controller with gravity compensation runs at 100 Hz on noisy sensor readings. It knows the nominal arm and the declared payload, but <b>it knows nothing about friction</b>. When friction rises, the controller has to work harder and the arm lags a little behind its target. That lag is the signal the AI looks for.</p>
+        <div class="timing">
+          <div><b class="num">1 kHz</b><span>physics (RK4, 1 ms step)</span></div>
+          <div><b class="num">100 Hz</b><span>controller and sensors</span></div>
+          <div><b class="num">10 Hz</b><span>AI decision</span></div>
+        </div>
+      </div>
+      <figure class="figure" style="margin:0">
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Parameter</th><th class="r">Link 1</th><th class="r">Link 2</th></tr></thead>
+          <tbody>
+            <tr><td>Length [m]</td><td class="r">0.60</td><td class="r">0.50</td></tr>
+            <tr><td>Mass [kg]</td><td class="r">8.0</td><td class="r">5.0</td></tr>
+            <tr><td>Inertia about centre of mass [kg·m²]</td><td class="r">0.24</td><td class="r">0.104</td></tr>
+            <tr><td>Torque limit [N·m]</td><td class="r">150</td><td class="r">60</td></tr>
+            <tr><td>Viscous friction b [N·m·s/rad]</td><td class="r">2.0</td><td class="r">1.2</td></tr>
+            <tr><td>Coulomb friction τ<sub>c</sub> [N·m]</td><td class="r">3.0</td><td class="r">2.0</td></tr>
+            <tr><td>Controller gains Kp / Kd</td><td class="r">1500 / 100</td><td class="r">300 / 20</td></tr>
+          </tbody>
+        </table></div>
+        <figcaption>Physics checks run as automated tests: energy is conserved without friction, friction always removes energy, gravity matches the gradient of potential energy, and halving the time step changes joint angles by at most 8.2 × 10⁻⁹ rad.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="step" id="fault">
+    <div class="step-head"><span class="label">Stage 2 · Fault injection</span><h2>A fault is a change in one number inside the physics</h2></div>
+    <div class="two">
+      <div class="prose">
+        <p>Friction at each joint has a viscous part that grows with speed and a Coulomb part that resists any motion. To simulate a stiffening joint, both are multiplied by a factor. That is the only thing a fault changes. The controller is not told, and neither is the AI.</p>
+        <div class="eq">\[ \tau_f = m\left( b\,\dot q + \tau_c \tanh\frac{\dot q}{0.02} \right) \]</div>
+        <p>A window is labelled <b>anomaly</b> once the multiplier m reaches <b>1.5</b>, meaning friction is 50% above that run's healthy value. The rule was fixed before any data was generated, and it never looks at tracking error.</p>
+        <p>Faults come in three shapes in the training data: <i>mild</i> jumps (×1.6–2.2), <i>severe</i> jumps (×2.8–4.0), and <i>gradual</i> ramps over 6–12 s.</p>
+      </div>
+      <div style="display:grid;gap:16px;min-width:0">
+        <figure class="figure" style="margin:0">
+          <div class="slider-row"><label for="multSlider">Friction multiplier on joint 1</label><input type="range" id="multSlider" min="1" max="4" step="0.1" value="3"><b class="mono num" id="multVal">× 3.0</b></div>
+          <canvas class="fig" id="cFric" style="height:200px" aria-label="Friction torque versus joint speed"></canvas>
+          <figcaption>Friction torque on joint 1 against joint speed. Grey: healthy. Red: with the multiplier applied.</figcaption>
+        </figure>
+        <figure class="figure" style="margin:0">
+          <canvas class="fig" id="cSched" style="height:170px" aria-label="Fault schedules over time"></canvas>
+          <figcaption>Multiplier over time in two of the recorded runs above: a sudden ×3 on joint 2 at 12 s, and a ramp to ×3.5 on joint 1 starting at 8 s. The dashed line at 1.5 is where the label switches to anomaly.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="step" id="hard">
+    <div class="step-head"><span class="label">Stage 3 · The hard part</span><h2>Heavier loads also raise torque. Friction does something different.</h2></div>
+    <div class="two">
+      <div class="prose">
+        <p>A naive detector would raise an alarm whenever torque or tracking error goes up. But a healthy arm carrying 2 kg instead of 0.5 kg also needs more torque, and a healthy arm moving faster also lags more. Those cases must not trigger an alarm.</p>
+        <p>The useful difference is <b>direction</b>. Friction always pushes against motion, so with more friction the arm falls behind its target <i>in the direction it is moving</i>. Extra payload mostly adds a gravity load, and the controller already compensates for that.</p>
+        <p>The figure plots every 1-second window from three recorded runs. Moving right means more torque, moving up means more lag along the direction of motion. The heavy-load windows shift right. The high-friction windows shift up.</p>
+      </div>
+      <figure class="figure" style="margin:0">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <span class="toggle" role="group" aria-label="Joint" id="jointToggle"><button type="button" data-j="2" aria-pressed="true">Joint 2</button><button type="button" data-j="1" aria-pressed="false">Joint 1</button></span>
+          <div class="legend"><span><i style="background:var(--ok)"></i>healthy, 0.5 kg</span><span><i style="background:var(--j1)"></i>healthy, 2.0 kg</span><span><i style="background:var(--alarm)"></i>friction ×3</span></div>
+        </div>
+        <canvas class="fig" id="cScatter" style="height:300px" aria-label="Scatter of torque RMS against direction-weighted tracking error"></canvas>
+        <figcaption id="scatterCap">Each dot is one window. x: torque RMS. y: mean tracking error weighted by the direction of target motion. Friction windows are taken from 1 s after the fault.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="step" id="features">
+    <div class="step-head"><span class="label">Stage 4 · What the AI reads</span><h2>24 numbers from the last second of signals</h2></div>
+    <div class="two">
+      <div class="prose">
+        <p>Every 0.1 s the detector takes the most recent 1.0 s of sensor data and summarises it, per joint, into 12 numbers: torque size and variation, tracking error size and peak, error along the direction of motion, velocity error, and how fast and where the target is moving. The last group gives the model context, so it can tell "large error because the arm is moving fast" apart from "large error because something is resisting".</p>
+        <p>The single most useful feature is the tracking error weighted by the direction the target is moving:</p>
+        <div class="eq">\[ \bar e_{\text{dir}} = \frac{1}{N}\sum_{k=1}^{N} e_k \tanh\frac{\dot q_{\text{des},k}}{0.05} \]</div>
+        <p>Only past samples are used. The online demo calls the same feature function as the offline training code, and an automated test checks that both produce identical numbers.</p>
+        <div class="prose" style="gap:8px">
+          <span class="label">Never given to the model</span>
+          <div class="never"><span>absolute time</span><span>run id</span><span>true payload</span><span>friction multiplier</span><span>label</span></div>
+        </div>
+        <p>A Random Forest of 200 trees maps the 24 numbers to a score between 0 and 1. Its settings were chosen on a separate validation set (average precision 0.927). The score is a model output, not a calibrated probability.</p>
+      </div>
+      <figure class="figure" style="margin:0">
+        <span class="label">Feature importance in the trained forest (top 10 of 24)</span>
+        <div class="imp" id="imp"></div>
+        <figcaption>Impurity-based importance. The leading features are all tracking-error features, and the top one is joint 1's error along the direction of motion.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="step" id="alarm">
+    <div class="step-head"><span class="label">Stage 5 · From score to alarm</span><h2>One high score is not enough. Eight in a row is.</h2></div>
+    <div class="prose">
+      <p>A single window can look odd by chance. The alarm turns on only after <b>8 consecutive windows</b> score at or above <b>0.40</b>, which is 0.8 s of sustained evidence. It turns off after 5 consecutive windows below the threshold. These values were chosen on validation data to give the best F1 while keeping false alarms at or below 0.5 per minute of healthy operation.</p>
+    </div>
+    <figure class="figure" style="margin:0">
+      <span class="label" id="stripTitle">Recorded run: sudden friction ×3 on joint 2</span>
+      <div class="strip" id="strip"></div>
+      <div class="strip-axis" id="stripAxis"></div>
+      <div class="legend"><span><i style="background:var(--line);border-radius:2px"></i>below threshold</span><span><i style="background:var(--score);border-radius:2px"></i>above threshold (counting)</span><span><i style="background:var(--alarm);border-radius:2px"></i>alarm on</span><span><i style="background:transparent;border:1.5px dashed var(--warn);border-radius:0;height:0;width:14px"></i>threshold 0.40</span></div>
+      <figcaption id="stripCap"></figcaption>
+    </figure>
+  </section>
+
+  <section class="step" id="diagnosis">
+    <div class="step-head"><span class="label">Stage 6 · Diagnosis</span><h2>Then: which joint, and how much?</h2></div>
+    <div class="two">
+      <div class="prose">
+        <p>An alarm that only says "something is wrong" leaves the same question I started with. So once the alarm is on, two more Random Forests read the same 24 numbers. One decides which joint is at fault. The other estimates that joint's friction multiplier, so the system can report something like <b>"Joint 2 · friction +200%"</b>.</p>
+        <p>Both were trained only on fault windows from the training runs. They reuse the detector's settings and were not tuned further. Their output is averaged over up to the last 20 above-threshold windows (2 s), and it is shown only while the alarm is on.</p>
+        <p>The friction estimate is rough. Estimates are pulled toward the middle of the training range: increases near ×1.5 tend to be read as about ×2.2, and the largest ones are underestimated. It separates a moderate fault from a severe one, but it does not measure friction precisely.</p>
+        <p>The diagnosis can only be as trustworthy as the alarm in front of it. During a false alarm it still names a joint and a friction level, and both are wrong. Pick "Fast motion" in the figure to see this.</p>
+      </div>
+      <figure class="figure" style="margin:0">
+        <span class="toggle" role="group" aria-label="Recorded run" id="diagToggle" style="flex-wrap:wrap"><button type="button" data-r="abrupt_j2" aria-pressed="true">Joint 2 ×3</button><button type="button" data-r="abrupt_j1" aria-pressed="false">Joint 1 ×3</button><button type="button" data-r="gradual_j1" aria-pressed="false">Gradual, joint 1</button><button type="button" data-r="fast" aria-pressed="false">Fast motion (no fault)</button></span>
+        <canvas class="fig" id="cDiag" style="height:240px" aria-label="Estimated versus true friction multiplier over time"></canvas>
+        <div class="legend"><span><i style="background:var(--ink);border-radius:0;height:2px;width:14px"></i>true multiplier (simulator)</span><span><i style="background:var(--j1)"></i>estimate, says joint 1</span><span><i style="background:var(--j2)"></i>estimate, says joint 2</span></div>
+        <figcaption>Each dot is the diagnosis shown at one 0.1 s update while the alarm is on, from the recorded runs in the player above.</figcaption>
+      </figure>
+    </div>
+    <figure class="figure" style="margin:0">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Faulty runs the detector caught</th><th class="r">Test · in range</th><th class="r">Stress · held out</th></tr></thead>
+        <tbody>
+          <tr><td>Right joint, at the moment the alarm turns on</td><td class="r">30 / 32</td><td class="r">23 / 26</td></tr>
+          <tr><td>Friction estimate error at that moment (median · 90th pct.)</td><td class="r">0.36× · 0.68×</td><td class="r">0.53× · 1.19×</td></tr>
+          <tr><td>Right joint 2 s later, where the alarm was still on</td><td class="r">23 / 23</td><td class="r">14 / 17</td></tr>
+          <tr><td>Friction estimate error 2 s later (median)</td><td class="r">0.20×</td><td class="r">0.57×</td></tr>
+        </tbody>
+      </table></div>
+      <figcaption>An error of 0.36× means, for example, an estimate of ×2.6 when the truth is ×3.0 (+160% reported, +200% real). Both wrong joints on the test set came from slow faults on joint 2, caught just as friction reached 1.5×. Fewer runs appear 2 s later because some alarms had already switched off or the run had ended. Source: <code>results/standard/diagnosis_metrics.json</code>.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 7 -->
+  <section class="step" id="results">
+    <div class="step-head"><span class="label">Stage 7 · Evaluation of detection</span><h2>Strong inside the training range, weak outside it</h2></div>
+    <div class="prose">
+      <p>300 simulated runs of 25 s each were split by experiment group into training, validation and test sets before any model was trained. A separate <b>stress test</b> uses conditions the model never saw: payloads of 2–3 kg, faster motion, and a new point-to-point trajectory type. The baseline raises an alarm when tracking error exceeds a tuned threshold, using the same alarm rule.</p>
+    </div>
+    <div class="results">
+      <figure class="figure" style="margin:0">
+        <h3>Test set · in range</h3>
+        <span class="label">48 runs · 32 with a fault · 9.7 min healthy</span>
+        <div class="res-block" id="resTest"></div>
+      </figure>
+      <figure class="figure" style="margin:0">
+        <h3>Stress test · held-out conditions</h3>
+        <span class="label">60 runs · 40 with a fault · 12.4 min healthy</span>
+        <div class="res-block" id="resStress"></div>
+      </figure>
+    </div>
+    <div class="prose">
+      <p>Inside the training range, the Random Forest caught every fault (32 of 32) with a median delay of 1.5 s, while the error-threshold baseline caught half. Outside the range it broke down. It mistook heavier loads and faster motion for friction, and 15 of 20 healthy stress runs had at least one false alarm. The model has not learned a general notion of friction. It learned what friction looks like within the conditions it was trained on.</p>
+      <p>The "fast motion" scenario in the player above shows this: that run sits at the edge of the training range and raises 5 false alarms in 30 s.</p>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="step" id="limits">
+    <div class="step-head"><span class="label">Limits</span><h2>What this project does not show</h2></div>
+    <ul class="limits">
+      <li>Every signal is simulated. The arm has rigid links and no motor, gearbox, backlash or temperature effects. Simulated torque is not measured motor current.</li>
+      <li>Higher friction is one way to model a fault. It does not show that the cause is lost lubrication, and the system cannot identify causes.</li>
+      <li>Only one fault type, on one joint at a time.</li>
+      <li>Each test scenario has only 4–8 runs, and no confidence intervals were computed.</li>
+      <li>The model does not generalise to heavier loads or faster motion than it was trained on.</li>
+      <li>The diagnosis names a joint and a friction level, not a cause. On a false alarm it is wrong too, and its friction estimate is typically off by 0.2–0.4× within the training range and more outside it.</li>
+      <li>This is anomaly detection. It does not predict when a part will fail or how much life it has left.</li>
+    </ul>
+    <div class="prose">
+      <h3>Next steps</h3>
+      <p>Give the model the declared payload, or the residual between measured torque and the torque a nominal physics model predicts, so that load and friction separate by construction. Then re-test on a fresh stress set, since the current one has already been looked at.</p>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="step" id="built">
+    <div class="step-head"><span class="label">Method and transparency</span><h2>My role, and how AI was used</h2></div>
+    <div class="two">
+      <div class="roles">
+        <div><h3>Problem and fault definition</h3><p>I posed the research question: can joint torque and tracking error alone reveal rising joint friction, without false alarms when the arm is simply heavier or faster? I chose to model the fault as a friction multiplier and fixed the anomaly definition (friction at least 1.5× its healthy value) before any data was generated.</p></div>
+        <div><h3>Simulation and data</h3><p>I specified the simulation pipeline: the arm, a controller that is blind to friction, and the healthy, fault and stress scenarios. I then ran the data generation. All 300 runs come from this simulator, and no external dataset was used.</p></div>
+        <div><h3>Training and evaluation</h3><p>I directed the training and evaluation design. Runs were split by experiment group so near-duplicate runs never sit on both sides. Settings and thresholds were tuned on validation data only. The model was compared against a simple error-threshold baseline, and an out-of-distribution stress test was held out and reported separately.</p></div>
+        <div><h3>AI assistance</h3><p>I used Claude, an AI coding assistant, throughout the project to write and debug the code, run the experiments and draft the report, following my questions and decisions. Every number on this page is read from the project's own result files or from runs of its simulator and trained model.</p></div>
+      </div>
+      <div class="prose" style="min-width:0">
+        <span class="label">Reproduce</span>
+<pre class="cmd">python -m pytest -q
+python -m scripts.run_pipeline --mode standard
+python -m scripts.train_diagnosis --data data/standard --model models/standard
+python -m scripts.evaluate_diagnosis --data data/standard --model models/standard --results results/standard
+python -m scripts.run_demo --model models/standard
+python -m scripts.export_web_demo --model models/standard</pre>
+        <p style="font-size:.85rem;color:var(--muted)">Seed 20261024 · Python 3.13 · scikit-learn 1.9.1</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" id="files">
+    <div class="step-head"><span class="label">Materials</span><h2>Project files and links</h2></div>
+    <div class="files" id="fileList"></div>
+  </section>
+
+  <footer>JointGuard AI · Tuan Anh Nguyen · simulation study of joint-friction anomaly detection on a 2-DOF arm. All data simulated; not validated on hardware.</footer>
+</div>
+
+<script>
+window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] }, svg: { fontCache: "global" }, options: { enableMenu: false } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" defer></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  /* Project files: put each public https link in `href`. Empty links show as "Link coming soon". */
+  const LINKS = [
+    { label: "Source code", desc: "GitHub repository: simulator, models, tests and scripts", href: "" },
+    { label: "Technical report (LaTeX, PDF)", desc: "English write-up of methods, results and limitations", href: "" },
+    { label: "Detailed results report", desc: "Every table and figure, generated automatically from the result files", href: "" }
+  ];
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  $("fileList").innerHTML = LINKS.map(l => l.href
+    ? `<a class="file" href="${esc(l.href)}" target="_blank" rel="noopener"><b>${esc(l.label)}</b><span>${esc(l.desc)}</span><em>Open ↗</em></a>`
+    : `<div class="file empty"><b>${esc(l.label)}</b><span>${esc(l.desc)}</span><em>Link coming soon</em></div>`).join("");
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const DESC = {
+    healthy: "Healthy arm, 0.5 kg payload, normal speed. Nothing is injected, so the model should stay at NORMAL for the whole run.",
+    heavy: "Healthy arm carrying 2.0 kg. Joint torque rises noticeably, but no fault is injected, so the model should stay quiet.",
+    abrupt_j2: "At t = 12 s, friction on joint 2 jumps to 3× its healthy value. Only the physics changes. Watch the orange error trace and the score.",
+    abrupt_j1: "At t = 12 s, friction on joint 1 (the shoulder) jumps to 3×. Its effect is subtler because joint 1 carries much more torque to begin with.",
+    gradual_j1: "From t = 8 s, friction on joint 1 creeps up to 3.5× over 10 s. The label switches at 1.5×, at t = 10 s.",
+    fast: "Healthy arm moving fast, at the edge of what the model saw in training. Nothing is injected, yet the model raises false alarms. This is a known limit."
+  };
+  const SHORT = { healthy: "Healthy", heavy: "Heavy load 2 kg", abrupt_j2: "Joint 2 friction ×3", abrupt_j1: "Joint 1 friction ×3", gradual_j1: "Gradual, joint 1", fast: "Fast motion" };
+
+  let D, S, t = 16, playing = false, speed = 1, last = 0;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function fit(c) {
+    const r = c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.round(r.width * d)), h = Math.max(1, Math.round(r.height * d));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0);
+    return [g, r.width, r.height];
+  }
+  function niceTicks(lo, hi, n) {
+    const span = hi - lo || 1, raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(m => m * p).find(s => span / s <= n) || p * 10;
+    const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
+    return out;
+  }
+  const rowAt = time => S.rows[Math.max(0, Math.min(S.rows.length - 1, Math.floor(time * 20 + 1e-6)))];
+  function winIdx(time) {
+    const W = S.windows; let lo = 0, hi = W.length - 1, k = -1;
+    while (lo <= hi) { const m = (lo + hi) >> 1; if (W[m][0] <= time + 1e-6) { k = m; lo = m + 1; } else hi = m - 1; }
+    return k;
+  }
+
+  /* ---------- player ---------- */
+  let bounds;
+  function computeBounds() {
+    let x0 = 0, x1 = 0, y0 = 0, y1 = 0;
+    for (const sc of D.scenarios) for (const r of sc.rows) for (const [x, y] of [[r[1], r[2]], [r[3], r[4]], [r[5], r[6]]]) {
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+    bounds = { x0: x0 - .15, x1: x1 + .15, y0: y0 - .2, y1: y1 + .15 };
+  }
+  function drawRobot() {
+    const [g, w, h] = fit($("robot"));
+    g.clearRect(0, 0, w, h);
+    const sc = Math.min((w - 20) / (bounds.x1 - bounds.x0), (h - 40) / (bounds.y1 - bounds.y0));
+    const ox = (w - sc * (bounds.x1 + bounds.x0)) / 2, oy = (h - 20) / 2 + sc * (bounds.y1 + bounds.y0) / 2;
+    const P = (x, y) => [ox + x * sc, oy - y * sc];
+    const k = Math.floor(t * 20 + 1e-6), k0 = Math.max(0, k - 80);
+    const muted = css("--muted"), ink = css("--ink");
+    g.fillStyle = muted;
+    for (let i = k0; i <= k; i += 2) { const r = S.rows[i]; if (!r) break; const [x, y] = P(r[5], r[6]); g.beginPath(); g.arc(x, y, 1.6, 0, 7); g.fill(); }
+    g.strokeStyle = css("--ok"); g.lineWidth = 2; g.beginPath();
+    for (let i = k0; i <= k; i++) { const r = S.rows[i]; if (!r) break; const [x, y] = P(r[3], r[4]); i === k0 ? g.moveTo(x, y) : g.lineTo(x, y); }
+    g.stroke();
+    const r = rowAt(t), b = P(0, 0), e = P(r[1], r[2]), tip = P(r[3], r[4]), tgt = P(r[5], r[6]);
+    g.fillStyle = muted; g.globalAlpha = .5; g.fillRect(b[0] - 26, b[1] + 2, 52, 16); g.globalAlpha = 1;
+    g.lineCap = "round";
+    g.strokeStyle = css("--j1"); g.lineWidth = 13; g.beginPath(); g.moveTo(...b); g.lineTo(...e); g.stroke();
+    g.strokeStyle = css("--j2"); g.lineWidth = 9; g.beginPath(); g.moveTo(...e); g.lineTo(...tip); g.stroke();
+    for (const [p, m] of [[b, r[11]], [e, r[12]]]) {
+      g.fillStyle = m >= 1.5 ? css("--alarm") : m > 1.0 ? css("--warn") : css("--surface");
+      g.strokeStyle = ink; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(p[0], p[1], 9, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = ink; g.beginPath(); g.arc(p[0], p[1], 3, 0, 7); g.fill();
+    }
+    const s = 8 + 5 * S.payload; g.fillStyle = ink; g.globalAlpha = .75; g.fillRect(tip[0] - s / 2, tip[1] - s / 2, s, s); g.globalAlpha = 1;
+    g.strokeStyle = muted; g.lineWidth = 1.2; g.beginPath(); g.arc(tgt[0], tgt[1], 7, 0, 7); g.stroke();
+  }
+  function drawSeries(id, series, opt) {
+    const [g, w, h] = fit($(id));
+    g.clearRect(0, 0, w, h);
+    const L = 40, R = 6, T = 6, B = 16, iw = w - L - R, ih = h - T - B;
+    const tEnd = Math.max(t, 10), t0 = tEnd - 10;
+    const X = tt => L + (tt - t0) / 10 * iw;
+    let lo = opt.lo, hi = opt.hi;
+    if (lo === undefined) {
+      lo = Infinity; hi = -Infinity;
+      for (const s of series) for (const p of s.pts) if (p[0] >= t0 && p[0] <= t) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); }
+      if (!isFinite(lo)) { lo = -1; hi = 1; }
+      const pad = .12 * (hi - lo) + 1e-6; lo -= pad; hi += pad;
+    }
+    const Y = v => T + ih - (Math.min(Math.max(v, lo), hi) - lo) / (hi - lo) * ih;
+    const muted = css("--muted");
+    if (opt.shade) { g.fillStyle = css("--alarm-soft"); for (const [a, bb] of opt.shade) { const xa = X(Math.max(a, t0)), xb = X(Math.min(bb, t)); if (xb > xa) g.fillRect(xa, T, xb - xa, ih); } }
+    g.strokeStyle = css("--line"); g.lineWidth = 1; g.fillStyle = muted; g.font = "10px " + css("--f-mono");
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (const v of niceTicks(lo, hi, 3)) { const y = Y(v); g.beginPath(); g.moveTo(L, y); g.lineTo(L + iw, y); g.stroke(); g.fillText(+v.toFixed(2) + "", L - 5, y); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (let s = Math.ceil(t0 / 2) * 2; s <= tEnd + 1e-6; s += 2) g.fillText(s + " s", Math.min(Math.max(X(s), L + 10), L + iw - 12), T + ih + 3);
+    if (S.t_label != null && S.t_label >= t0 && S.t_label <= t) {
+      g.strokeStyle = css("--ink"); g.setLineDash([2, 3]); g.beginPath(); g.moveTo(X(S.t_label), T); g.lineTo(X(S.t_label), T + ih); g.stroke(); g.setLineDash([]);
+    }
+    if (opt.hline != null) { g.strokeStyle = css("--warn"); g.setLineDash([5, 4]); g.beginPath(); g.moveTo(L, Y(opt.hline)); g.lineTo(L + iw, Y(opt.hline)); g.stroke(); g.setLineDash([]); }
+    g.lineWidth = 1.6; g.lineJoin = "round";
+    for (const s of series) {
+      g.strokeStyle = s.color; g.beginPath(); let started = false;
+      for (const p of s.pts) { if (p[0] < t0 - .1) continue; if (p[0] > t) break; const x = X(p[0]), y = Y(p[1]); started ? g.lineTo(x, y) : (g.moveTo(x, y), started = true); }
+      g.stroke();
+    }
+  }
+  let cache = {};
+  function prep() {
+    const R = S.rows, W = S.windows;
+    cache = {
+      tau1: R.map(r => [r[0], r[7]]), tau2: R.map(r => [r[0], r[8]]),
+      e1: R.map(r => [r[0], r[9] * 1000]), e2: R.map(r => [r[0], r[10] * 1000]),
+      score: W.map(w => [w[0], w[1]]), shade: []
+    };
+    let st = null;
+    for (const w of W) { if (w[2] && st === null) st = w[0]; if (!w[2] && st !== null) { cache.shade.push([st, w[0]]); st = null; } }
+    if (st !== null) cache.shade.push([st, 99]);
+  }
+  function drawCharts() {
+    const j1 = css("--j1"), j2 = css("--j2");
+    drawSeries("cTau", [{ pts: cache.tau1, color: j1 }, { pts: cache.tau2, color: j2 }], {});
+    drawSeries("cErr", [{ pts: cache.e1, color: j1 }, { pts: cache.e2, color: j2 }], {});
+    drawSeries("cScore", [{ pts: cache.score, color: css("--score") }], { lo: 0, hi: 1, hline: D.model.threshold, shade: cache.shade });
+  }
+  function readouts() {
+    const k = winIdx(t), w = k >= 0 ? S.windows[k] : null;
+    let st = "WARMING UP", cls = "s-warm";
+    if (w) { if (w[2]) { st = "ANOMALY ALARM"; cls = "s-alarm"; } else if (w[1] >= D.model.threshold) { st = "SUSPICIOUS"; cls = "s-sus"; } else { st = "NORMAL"; cls = "s-ok"; } }
+    const el = $("aiStatus"); el.textContent = st; el.className = "status " + cls;
+    $("aiScore").textContent = w ? w[1].toFixed(2) + "  (threshold " + D.model.threshold.toFixed(2) + ")" : "–";
+    $("aiCount").textContent = S.alarm_on.filter(a => a <= t + 1e-6).length;
+    $("aiDiag").textContent = w && w[7] ? `Joint ${w[7]} · friction +${Math.round((w[8] - 1) * 100)}% (×${w[8].toFixed(2)})` : (w && w[2] ? "…" : "– (shown only during an alarm)");
+    $("aiDiag").style.color = w && w[7] ? "var(--alarm)" : "";
+    const r = rowAt(t);
+    $("gtMult").textContent = "j1 " + r[11].toFixed(2) + " · j2 " + r[12].toFixed(2);
+    $("gtLabel").textContent = r[13] ? "ANOMALY" : "normal";
+    $("gtLoad").textContent = S.payload.toFixed(1) + " kg · " + S.speed;
+    let d = "no fault injected";
+    if (S.t_label != null) {
+      if (t < S.t_label) d = "label switches at " + S.t_label.toFixed(1) + " s";
+      else if (S.first_alarm_after_label != null && t >= S.first_alarm_after_label - 1e-6) d = "+" + S.delay_s.toFixed(1) + " s after label";
+      else d = "waiting for alarm…";
+    } else if (S.false_alarms.length) d = S.false_alarms.filter(a => a <= t + 1e-6).length + " false alarm(s) so far";
+    $("gtDelay").textContent = d;
+    $("clock").textContent = "t = " + t.toFixed(1) + " s";
+    $("scrub").value = t;
+  }
+  function render() { drawRobot(); drawCharts(); readouts(); }
+  function setPlaying(p) { playing = p; $("play").textContent = p ? "Pause" : (t >= 29.9 ? "Replay" : "Play"); if (p) { last = performance.now(); requestAnimationFrame(tick); } }
+  function tick(now) {
+    if (!playing) return;
+    t = Math.min(30, t + Math.min(.1, (now - last) / 1000) * speed); last = now;
+    render();
+    if (t >= 30) { setPlaying(false); return; }
+    requestAnimationFrame(tick);
+  }
+  function choose(id, play) {
+    S = D.scenarios.find(s => s.id === id); prep();
+    for (const b of $("chips").children) b.setAttribute("aria-pressed", b.dataset.id === id);
+    $("scenDesc").textContent = DESC[id] || S.title;
+    $("scrub").max = (S.rows.length - 1) / 20;
+    if (play) { t = 0; render(); setPlaying(!reduce); if (reduce) render(); } else render();
+  }
+  function buildPlayer() {
+    computeBounds();
+    for (const sc of D.scenarios) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.id = sc.id;
+      b.textContent = SHORT[sc.id] || sc.title; b.onclick = () => choose(sc.id, true); $("chips").appendChild(b);
+    }
+    $("play").onclick = () => { if (t >= 29.9) t = 0; setPlaying(!playing); };
+    $("scrub").oninput = e => { t = +e.target.value; render(); if (!playing) $("play").textContent = "Play"; };
+    for (const b of document.querySelectorAll("[data-go]")) b.onclick = () => { choose(b.dataset.go, true); $("player").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); };
+    for (const b of $("speeds").children) b.onclick = () => { speed = +b.dataset.s; for (const o of $("speeds").children) o.setAttribute("aria-pressed", o === b); };
+    choose("abrupt_j2", false);
+  }
+
+  /* ---------- friction curve ---------- */
+  function drawFriction() {
+    const m = +$("multSlider").value; $("multVal").textContent = "× " + m.toFixed(1);
+    const [g, w, h] = fit($("cFric")); g.clearRect(0, 0, w, h);
+    const L = 44, R = 8, T = 8, B = 26, iw = w - L - R, ih = h - T - B, vmax = 1.5, tmax = 4 * (2 * vmax + 3) * 1.02;
+    const X = v => L + (v + vmax) / (2 * vmax) * iw, Y = f => T + ih / 2 - f / tmax * ih / 2;
+    const f = (v, k) => k * (2.0 * v + 3.0 * Math.tanh(v / .02));
+    g.strokeStyle = css("--line"); g.fillStyle = css("--muted"); g.font = "10px " + css("--f-mono"); g.lineWidth = 1;
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (const v of niceTicks(-tmax, tmax, 4)) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(L + iw, Y(v)); g.stroke(); g.fillText(v, L - 5, Y(v)); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (const v of [-1.5, -1, -.5, 0, .5, 1, 1.5]) g.fillText(v, X(v), T + ih + 4);
+    g.fillText("joint speed [rad/s]  ·  friction torque [N·m]", L + iw / 2, T + ih + 14);
+    for (const [k, col, lw] of [[1, css("--muted"), 1.6], [m, css("--alarm"), 2.2]]) {
+      g.strokeStyle = col; g.lineWidth = lw; g.beginPath();
+      for (let i = 0; i <= 300; i++) { const v = -vmax + 2 * vmax * i / 300, x = X(v), y = Y(f(v, k)); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+      g.stroke();
+    }
+  }
+  function drawSchedule() {
+    const a = D.scenarios.find(s => s.id === "abrupt_j2"), b = D.scenarios.find(s => s.id === "gradual_j1");
+    const [g, w, h] = fit($("cSched")); g.clearRect(0, 0, w, h);
+    const L = 34, R = 8, T = 8, B = 22, iw = w - L - R, ih = h - T - B;
+    const X = tt => L + tt / 30 * iw, Y = m => T + ih - (m - .8) / (3.8 - .8) * ih;
+    g.strokeStyle = css("--line"); g.fillStyle = css("--muted"); g.font = "10px " + css("--f-mono"); g.lineWidth = 1;
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (const v of [1, 2, 3]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(L + iw, Y(v)); g.stroke(); g.fillText("×" + v, L - 5, Y(v)); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (let s = 0; s <= 30; s += 5) g.fillText(s + " s", X(s), T + ih + 5);
+    g.strokeStyle = css("--warn"); g.setLineDash([5, 4]); g.beginPath(); g.moveTo(L, Y(1.5)); g.lineTo(L + iw, Y(1.5)); g.stroke(); g.setLineDash([]);
+    for (const [sc, col, idx] of [[a, css("--j2"), 12], [b, css("--j1"), 11]]) {
+      g.strokeStyle = col; g.lineWidth = 2.2; g.beginPath();
+      sc.rows.forEach((r, i) => i ? g.lineTo(X(r[0]), Y(r[idx])) : g.moveTo(X(r[0]), Y(r[idx]))); g.stroke();
+    }
+    g.textAlign = "left"; g.textBaseline = "bottom"; g.font = "11px " + css("--f-body");
+    g.fillStyle = css("--j2"); g.fillText("sudden, joint 2", X(12.4), Y(3) - 3);
+    g.fillStyle = css("--j1"); g.fillText("gradual, joint 1", X(19), Y(3.5) - 3);
+  }
+
+  /* ---------- scatter ---------- */
+  let joint = 2;
+  function drawScatter() {
+    const get = id => D.scenarios.find(s => s.id === id);
+    const fi = joint === 1 ? [5, 3] : [6, 4];
+    const groups = [
+      { sc: get("healthy"), col: css("--ok"), sel: () => true },
+      { sc: get("heavy"), col: css("--j1"), sel: () => true },
+      { sc: get(joint === 1 ? "abrupt_j1" : "abrupt_j2"), col: css("--alarm"), sel: w => w[0] >= 13 }
+    ];
+    const pts = groups.map(gr => ({ col: gr.col, p: gr.sc.windows.filter((w, i) => i % 2 === 0 && gr.sel(w)).map(w => [w[fi[0]], w[fi[1]] * 1000]) }));
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const g of pts) for (const [x, y] of g.p) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    const px = (x1 - x0) * .06, py = (y1 - y0) * .06; x0 -= px; x1 += px; y0 = Math.min(0, y0 - py); y1 += py;
+    const [g, w, h] = fit($("cScatter")); g.clearRect(0, 0, w, h);
+    const L = 46, R = 10, T = 10, B = 38, iw = w - L - R, ih = h - T - B;
+    const X = v => L + (v - x0) / (x1 - x0) * iw, Y = v => T + ih - (v - y0) / (y1 - y0) * ih;
+    g.strokeStyle = css("--line"); g.fillStyle = css("--muted"); g.font = "10px " + css("--f-mono"); g.lineWidth = 1;
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (const v of niceTicks(y0, y1, 5)) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(L + iw, Y(v)); g.stroke(); g.fillText(v, L - 5, Y(v)); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (const v of niceTicks(x0, x1, 6)) { g.beginPath(); g.moveTo(X(v), T); g.lineTo(X(v), T + ih); g.stroke(); g.fillText(v, X(v), T + ih + 4); }
+    g.fillText("joint " + joint + " torque RMS [N·m]", L + iw / 2, T + ih + 20);
+    g.save(); g.translate(11, T + ih / 2); g.rotate(-Math.PI / 2); g.fillText("error along motion [mrad]", 0, -6); g.restore();
+    for (const gr of pts) { g.fillStyle = gr.col; g.globalAlpha = .6; for (const [x, y] of gr.p) { g.beginPath(); g.arc(X(x), Y(y), 2.6, 0, 7); g.fill(); } }
+    g.globalAlpha = 1;
+  }
+
+  /* ---------- importance ---------- */
+  const FN = { tau_rms: "torque RMS", tau_std: "torque std. dev.", tau_maxabs: "peak |torque|", dtau_rms: "torque rate RMS", tau_dir_mean: "torque along motion",
+    e_rms: "error RMS", e_maxabs: "peak |error|", e_dir_mean: "error along motion", ev_rms: "velocity error RMS",
+    qd_des_rms: "target speed RMS", qdd_des_rms: "target accel. RMS", q_des_mean: "mean target angle" };
+  function buildImportance() {
+    const top = D.importances.slice(0, 10), max = top[0][1];
+    $("imp").innerHTML = top.map(([n, v]) => {
+      const j = n[1], key = n.slice(3);
+      return `<div class="imp-row"><span>Joint ${j} · ${FN[key] || key}</span><span class="bar-wrap"><span class="bar" style="display:block;width:${(v / max * 100).toFixed(1)}%;background:var(--j${j})"></span></span><span class="v">${(v * 100).toFixed(1)}%</span></div>`;
+    }).join("");
+  }
+
+  /* ---------- alarm strip ---------- */
+  function buildStrip() {
+    const sc = D.scenarios.find(s => s.id === "abrupt_j2"), thr = D.model.threshold;
+    const tA = sc.first_alarm_after_label, a = sc.t_label - 1.0, b = tA + 1.0;
+    const W = sc.windows.filter(w => w[0] >= a - 1e-6 && w[0] <= b + 1e-6);
+    let run = 0, html = "";
+    W.forEach(w => {
+      const pos = w[1] >= thr; run = pos ? run + 1 : 0;
+      const cls = w[2] ? "w on" : pos ? "w pos" : "w";
+      const lbl = pos && !w[2] && run <= D.model.n_on ? `<em>${run}</em>` : "";
+      html += `<span class="${cls}" title="t = ${w[0].toFixed(1)} s, score ${w[1].toFixed(2)}">${lbl}<i style="height:${Math.max(2, w[1] * 100)}%"></i></span>`;
+    });
+    const span = W[W.length - 1][0] - W[0][0], pct = tt => ((tt - W[0][0]) / span * (1 - 1 / W.length) + .5 / W.length) * 100;
+    html += `<span class="thr" style="bottom:${thr * (150 - 18)}px"></span>`;
+    html += `<span class="mark" style="left:${pct(sc.t_label)}%"><span>fault (label = 1)</span></span>`;
+    html += `<span class="mark" style="left:${pct(tA)}%;border-color:var(--alarm)"><span style="color:var(--alarm)">alarm on</span></span>`;
+    $("strip").innerHTML = html;
+    $("stripAxis").innerHTML = `<span>${W[0][0].toFixed(1)} s</span><span>one bar = one 0.1 s update · height = score</span><span>${W[W.length - 1][0].toFixed(1)} s</span>`;
+    $("stripCap").textContent = `Friction on joint 2 triples at t = ${sc.t_label.toFixed(1)} s. The score crosses the threshold within a few updates; the counter reaches ${D.model.n_on} and the alarm turns on at t = ${tA.toFixed(1)} s, ${sc.delay_s.toFixed(1)} s after the fault.`;
+  }
+
+  /* ---------- results ---------- */
+  function resBlock(el, d) {
+    const row = (name, v, max, txt, cls) => `<div class="res-row"><span>${name}</span><span class="track"><span class="fill ${cls}" style="display:block;width:${(v / max * 100).toFixed(1)}%"></span></span><span class="v">${txt}</span></div>`;
+    $(el).innerHTML =
+      `<span class="label">Faulty runs detected</span>` +
+      row("Random Forest", d.rf.det, d.n, `${d.rf.det}/${d.n}`, "rf") + row("Baseline", d.bl.det, d.n, `${d.bl.det}/${d.n}`, "bl") +
+      `<span class="label">False alarms per minute of healthy operation</span>` +
+      row("Random Forest", d.rf.fa, 4, d.rf.fa.toFixed(2), "fa rf") + row("Baseline", d.bl.fa, 4, d.bl.fa.toFixed(2), "fa bl") +
+      `<span class="label">Median detection delay</span>` +
+      row("Random Forest", d.rf.dl, 4, d.rf.dl.toFixed(1) + " s", "rf") + row("Baseline", d.bl.dl, 4, d.bl.dl.toFixed(1) + " s", "bl") +
+      `<p style="font-size:.85rem;color:var(--muted)">Healthy runs with any false alarm: RF ${d.rf.hf}, baseline ${d.bl.hf}. Window-level F1: RF ${d.rf.f1.toFixed(2)}, baseline ${d.bl.f1.toFixed(2)}.</p>`;
+  }
+
+  /* ---------- diagnosis ---------- */
+  let diagRun = "abrupt_j2";
+  function drawDiag() {
+    const sc = D.scenarios.find(s => s.id === diagRun), j = sc.fault ? sc.fault.joint : 1;
+    const [g, w, h] = fit($("cDiag")); g.clearRect(0, 0, w, h);
+    const L = 40, R = 10, T = 10, B = 24, iw = w - L - R, ih = h - T - B, ta = 0, tb = 30;
+    const X = tt => L + (tt - ta) / (tb - ta) * iw, Y = m => T + ih - (m - .5) / (4.5 - .5) * ih;
+    g.strokeStyle = css("--line"); g.fillStyle = css("--muted"); g.font = "10px " + css("--f-mono"); g.lineWidth = 1;
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (const v of [1, 2, 3, 4]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(L + iw, Y(v)); g.stroke(); g.fillText("×" + v, L - 5, Y(v)); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (let s = 0; s <= 30; s += 5) g.fillText(s + " s", Math.min(X(s), L + iw - 12), T + ih + 5);
+    g.strokeStyle = css("--ink"); g.lineWidth = 2; g.beginPath();
+    sc.rows.forEach((r, i) => i ? g.lineTo(X(r[0]), Y(r[10 + j])) : g.moveTo(X(r[0]), Y(r[10 + j]))); g.stroke();
+    for (const wd of sc.windows) {
+      if (!wd[7]) continue;
+      g.fillStyle = css(wd[7] === 1 ? "--j1" : "--j2");
+      g.beginPath(); g.arc(X(wd[0]), Y(Math.min(4.5, wd[8])), 2.6, 0, 7); g.fill();
+    }
+  }
+
+  function redrawStatic() { drawFriction(); drawSchedule(); drawScatter(); drawDiag(); }
+
+  fetch("demo_runs.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+    D = d;
+    buildPlayer(); buildImportance(); buildStrip(); redrawStatic();
+    $("multSlider").oninput = drawFriction;
+    for (const b of $("diagToggle").children) b.onclick = () => { diagRun = b.dataset.r; for (const o of $("diagToggle").children) o.setAttribute("aria-pressed", o === b); drawDiag(); };
+    for (const b of $("jointToggle").children) b.onclick = () => { joint = +b.dataset.j; for (const o of $("jointToggle").children) o.setAttribute("aria-pressed", o === b); drawScatter(); };
+    new ResizeObserver(() => { render(); redrawStatic(); }).observe(document.body);
+    const rerender = () => { render(); redrawStatic(); };
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rerender);
+    new MutationObserver(rerender).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  }).catch(e => { $("scenDesc").textContent = "Could not load the recorded runs (demo_runs.json): " + e.message; });
+
+  resBlock("resTest", { n: 32, rf: { det: 32, fa: .21, dl: 1.5, hf: "0/16", f1: .82 }, bl: { det: 16, fa: .31, dl: 2.7, hf: "0/16", f1: .43 } });
+  resBlock("resStress", { n: 40, rf: { det: 26, fa: 3.88, dl: 1.8, hf: "15/20", f1: .57 }, bl: { det: 17, fa: 2.83, dl: 3.5, hf: "14/20", f1: .39 } });
+})();
+</script>

@@ -1,0 +1,11 @@
+# Tested with Python 3.13 on Linux (versions below are the ones used for the reported results).
+# Python 3.10+ should work; other versions may give slightly different numbers.
+numpy==2.5.4
+scipy==1.18.1
+pandas==3.1.0
+scikit-learn==1.9.1
+matplotlib==3.11.2
+joblib==1.6.0
+pygame==2.6.1
+python-docx==1.2.0
+pytest==9.1.1

@@ -1,0 +1,313 @@
+{
+  "name": "standard",
+  "mode": "standard",
+  "seed": 20261024,
+  "n_runs_ok": 300,
+  "n_runs_failed": 0,
+  "elapsed_s": 48.00480651855469,
+  "python": "3.13.17",
+  "numpy": "2.5.4",
+  "pandas": "3.1.0",
+  "created": "2026-10-24 16:25:31",
+  "config": {
+    "_comment": "All units SI: m, kg, s, rad, N*m. See README 'Conventions'.",
+    "robot": {
+      "l1": 0.6,
+      "l2": 0.5,
+      "m1": 8.0,
+      "m2": 5.0,
+      "lc1": 0.3,
+      "lc2": 0.25,
+      "I1": 0.24,
+      "I2": 0.104,
+      "armature1": 0.15,
+      "armature2": 0.08,
+      "g": 9.81,
+      "joint_limits": [
+        [
+          -0.6,
+          2.4
+        ],
+        [
+          -2.7,
+          -0.15
+        ]
+      ],
+      "torque_limits": [
+        150.0,
+        60.0
+      ],
+      "max_abs_velocity": 20.0
+    },
+    "friction": {
+      "nominal_b": [
+        2.0,
+        1.2
+      ],
+      "nominal_tau_c": [
+        3.0,
+        2.0
+      ],
+      "epsilon": 0.02,
+      "healthy_tolerance": 0.15
+    },
+    "controller": {
+      "kp": [
+        1500.0,
+        300.0
+      ],
+      "kd": [
+        100.0,
+        20.0
+      ],
+      "payload_declared_error": 0.1
+    },
+    "timing": {
+      "dt_physics": 0.001,
+      "f_control": 100,
+      "f_sample": 100,
+      "fps_display": 60
+    },
+    "sensor": {
+      "noise_q_range": [
+        0.0002,
+        0.001
+      ],
+      "noise_qd_range": [
+        0.002,
+        0.01
+      ]
+    },
+    "trajectory": {
+      "t_ramp": 2.0,
+      "initial_offset_max": 0.02,
+      "joint_margin": 0.05
+    },
+    "fault": {
+      "label_threshold_multiplier": 1.5,
+      "mild_range": [
+        1.6,
+        2.2
+      ],
+      "severe_range": [
+        2.8,
+        4.0
+      ],
+      "gradual_final_range": [
+        2.2,
+        4.0
+      ],
+      "gradual_ramp_range": [
+        6.0,
+        12.0
+      ]
+    },
+    "domains": {
+      "indomain": {
+        "center_q1": [
+          0.5,
+          1.1
+        ],
+        "center_q2": [
+          -1.6,
+          -0.9
+        ],
+        "amp1": [
+          0.15,
+          0.45
+        ],
+        "amp2": [
+          0.15,
+          0.5
+        ],
+        "freq": [
+          0.15,
+          0.55
+        ],
+        "payload_nominal": [
+          0.3,
+          0.8
+        ],
+        "payload_full": [
+          0.0,
+          2.0
+        ],
+        "freq_low_speed_group": [
+          0.15,
+          0.35
+        ]
+      },
+      "stress": {
+        "_comment": "Held-out: higher speed, heavier payload, point-to-point trajectories. Not used for any training/tuning.",
+        "center_q1": [
+          0.5,
+          1.1
+        ],
+        "center_q2": [
+          -1.6,
+          -0.9
+        ],
+        "amp1": [
+          0.2,
+          0.45
+        ],
+        "amp2": [
+          0.2,
+          0.5
+        ],
+        "freq": [
+          0.55,
+          0.75
+        ],
+        "payload_full": [
+          2.0,
+          3.0
+        ],
+        "p2p_move_time": [
+          0.8,
+          2.0
+        ],
+        "p2p_dwell": [
+          0.3,
+          1.0
+        ],
+        "p2p_fraction": 0.5
+      }
+    },
+    "modes": {
+      "smoke": {
+        "duration": 16.0,
+        "onset_range": [
+          5.0,
+          9.0
+        ],
+        "gradual_onset_range": [
+          4.0,
+          6.0
+        ],
+        "replicates_per_group": 2,
+        "indomain_counts": {
+          "healthy_speed": 6,
+          "healthy_load": 6,
+          "mild_j1": 6,
+          "mild_j2": 6,
+          "severe_j1": 6,
+          "severe_j2": 6,
+          "gradual_j1": 6,
+          "gradual_j2": 6
+        },
+        "stress_counts": {
+          "healthy_speed": 2,
+          "healthy_load": 2,
+          "severe_j1": 2,
+          "gradual_j2": 2
+        }
+      },
+      "standard": {
+        "duration": 25.0,
+        "onset_range": [
+          6.0,
+          16.0
+        ],
+        "gradual_onset_range": [
+          4.0,
+          9.0
+        ],
+        "replicates_per_group": 2,
+        "indomain_counts": {
+          "healthy_speed": 40,
+          "healthy_load": 40,
+          "mild_j1": 28,
+          "mild_j2": 28,
+          "severe_j1": 24,
+          "severe_j2": 24,
+          "gradual_j1": 28,
+          "gradual_j2": 28
+        },
+        "stress_counts": {
+          "healthy_speed": 10,
+          "healthy_load": 10,
+          "mild_j1": 6,
+          "mild_j2": 6,
+          "severe_j1": 6,
+          "severe_j2": 6,
+          "gradual_j1": 8,
+          "gradual_j2": 8
+        }
+      }
+    },
+    "split": {
+      "train": 0.6,
+      "val": 0.2,
+      "test": 0.2
+    },
+    "features": {
+      "window_s_options": [
+        0.5,
+        1.0
+      ],
+      "stride_s": 0.1,
+      "monitor_start_s": 2.0
+    },
+    "training": {
+      "rf_grid": {
+        "n_estimators": [
+          200
+        ],
+        "max_depth": [
+          null,
+          14
+        ],
+        "min_samples_leaf": [
+          2,
+          8
+        ],
+        "max_features": [
+          "sqrt",
+          0.5
+        ],
+        "class_weight": [
+          null,
+          "balanced"
+        ]
+      },
+      "threshold_grid": [
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9
+      ],
+      "n_on_grid": [
+        1,
+        3,
+        5,
+        8
+      ],
+      "n_off": 5,
+      "max_false_alarms_per_min": 0.5,
+      "baseline_scale_grid": [
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1,
+        1.2,
+        1.4,
+        1.6,
+        1.8,
+        2.0,
+        2.4,
+        2.8,
+        3.4,
+        4.0
+      ],
+      "baseline_quantile": 0.95
+    },
+    "seed": 20261024
+  }
+}

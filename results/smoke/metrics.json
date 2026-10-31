@@ -1,0 +1,849 @@
+{
+  "model_dir": "models/smoke",
+  "data_dir": "data/smoke",
+  "rf": {
+    "window_s": 1.0,
+    "threshold": 0.5,
+    "n_on": 3,
+    "n_off": 5,
+    "rf_params": {
+      "n_estimators": 200,
+      "max_depth": 14,
+      "min_samples_leaf": 8,
+      "max_features": 0.5,
+      "class_weight": null
+    }
+  },
+  "baseline": {
+    "window_s": 1.0,
+    "ref": [
+      0.0087051903374,
+      0.019909929312999997
+    ],
+    "threshold": 0.8,
+    "n_on": 1,
+    "n_off": 5,
+    "stride_s": 0.1,
+    "monitor_start_s": 2.0,
+    "f_sample": 100
+  },
+  "val": {
+    "rf": {
+      "n_runs": 16,
+      "n_windows": 2240,
+      "window_alarm_state": {
+        "precision": 0.9878419452887538,
+        "recall": 0.6109022556390977,
+        "f1": 0.7549361207897792,
+        "confusion": {
+          "tn": 1168,
+          "fp": 8,
+          "fn": 414,
+          "tp": 650
+        }
+      },
+      "window_raw_decision": {
+        "precision": 0.985691573926868,
+        "recall": 0.5827067669172933,
+        "f1": 0.7324276432368577,
+        "confusion": {
+          "tn": 1167,
+          "fp": 9,
+          "fn": 444,
+          "tp": 620
+        }
+      },
+      "healthy_minutes": 1.8034946773415987,
+      "false_alarms": 0,
+      "false_alarms_per_healthy_min": 0.0,
+      "healthy_runs_with_false_alarm": 0,
+      "n_healthy_runs": 4,
+      "n_fault_runs": 12,
+      "n_detected": 10,
+      "n_missed": 2,
+      "detection_rate": 0.8333333333333334,
+      "delay_median": 1.1662531725332506,
+      "delay_mean": 1.1740909587089106,
+      "delay_p90": 1.831062108173344,
+      "delay_max": 2.895021399179475,
+      "n_early_active": 1,
+      "by_scenario": {
+        "gradual_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.12081795096266959,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 1.695583776681818,
+          "delay_mean": 1.695583776681818,
+          "delay_p90": 1.7093922826744943,
+          "delay_max": 1.7128444091726633,
+          "n_early_active": 0
+        },
+        "gradual_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.11276920467548632,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 1.4475106995897375,
+          "delay_mean": 1.4475106995897375,
+          "delay_p90": 2.6055192592615275,
+          "delay_max": 2.895021399179475,
+          "n_early_active": 1
+        },
+        "healthy_load": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "healthy_speed": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "mild_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.13044021587096888,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 1.2367935238709333,
+          "delay_mean": 1.2367935238709333,
+          "delay_p90": 1.4346093266718434,
+          "delay_max": 1.484063277372071,
+          "n_early_active": 0
+        },
+        "mild_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.15915286561254258,
+          "n_fault_runs": 2,
+          "n_detected": 0,
+          "n_missed": 2,
+          "detection_rate": 0.0,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "severe_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.1334463548476137,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 1.1466093545715892,
+          "delay_mean": 1.1466093545715892,
+          "delay_p90": 1.3037079306716821,
+          "delay_max": 1.3429825746967055,
+          "n_early_active": 0
+        },
+        "severe_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.21353475203898414,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.3439574388304747,
+          "delay_mean": 0.3439574388304747,
+          "delay_p90": 0.34611926199375115,
+          "delay_max": 0.3466597177845703,
+          "n_early_active": 0
+        }
+      }
+    },
+    "baseline": {
+      "n_runs": 16,
+      "n_windows": 2240,
+      "window_alarm_state": {
+        "precision": 1.0,
+        "recall": 0.3599624060150376,
+        "f1": 0.5293711126468557,
+        "confusion": {
+          "tn": 1176,
+          "fp": 0,
+          "fn": 681,
+          "tp": 383
+        }
+      },
+      "window_raw_decision": {
+        "precision": 1.0,
+        "recall": 0.32048872180451127,
+        "f1": 0.4854092526690391,
+        "confusion": {
+          "tn": 1176,
+          "fp": 0,
+          "fn": 723,
+          "tp": 341
+        }
+      },
+      "healthy_minutes": 1.8034946773415987,
+      "false_alarms": 0,
+      "false_alarms_per_healthy_min": 0.0,
+      "healthy_runs_with_false_alarm": 0,
+      "n_healthy_runs": 4,
+      "n_fault_runs": 12,
+      "n_detected": 10,
+      "n_missed": 2,
+      "detection_rate": 0.8333333333333334,
+      "delay_median": 2.8339234572803846,
+      "delay_mean": 2.6530577095504624,
+      "delay_p90": 5.075327111205906,
+      "delay_max": 5.095021399179476,
+      "n_early_active": 0,
+      "by_scenario": {
+        "gradual_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.12081795096266959,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 4.145583776681818,
+          "delay_mean": 4.145583776681818,
+          "delay_p90": 4.199392282674494,
+          "delay_max": 4.212844409172663,
+          "n_early_active": 0
+        },
+        "gradual_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.11276920467548632,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 5.084080128083048,
+          "delay_mean": 5.084080128083048,
+          "delay_p90": 5.09283314496019,
+          "delay_max": 5.095021399179476,
+          "n_early_active": 0
+        },
+        "healthy_load": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "healthy_speed": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "mild_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.13044021587096888,
+          "n_fault_runs": 2,
+          "n_detected": 1,
+          "n_missed": 1,
+          "detection_rate": 0.5,
+          "delay_median": 1.5895237703697962,
+          "delay_mean": 1.5895237703697962,
+          "delay_p90": 1.5895237703697962,
+          "delay_max": 1.5895237703697962,
+          "n_early_active": 0
+        },
+        "mild_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.15915286561254258,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.8254140316237222,
+          "delay_mean": 0.8254140316237222,
+          "delay_p90": 0.9065208860447831,
+          "delay_max": 0.9267975996500484,
+          "n_early_active": 0
+        },
+        "severe_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.1334463548476137,
+          "n_fault_runs": 2,
+          "n_detected": 1,
+          "n_missed": 1,
+          "detection_rate": 0.5,
+          "delay_median": 4.242982574696705,
+          "delay_mean": 4.242982574696705,
+          "delay_p90": 4.242982574696705,
+          "delay_max": 4.242982574696705,
+          "n_early_active": 0
+        },
+        "severe_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.21353475203898414,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.29395743883047487,
+          "delay_mean": 0.29395743883047487,
+          "delay_p90": 0.3317956156671983,
+          "delay_max": 0.3412551598763791,
+          "n_early_active": 0
+        }
+      }
+    }
+  },
+  "test": {
+    "rf": {
+      "n_runs": 16,
+      "n_windows": 2240,
+      "window_alarm_state": {
+        "precision": 0.8654661016949152,
+        "recall": 0.8033431661750245,
+        "f1": 0.833248342682305,
+        "confusion": {
+          "tn": 1096,
+          "fp": 127,
+          "fn": 200,
+          "tp": 817
+        }
+      },
+      "window_raw_decision": {
+        "precision": 0.87651598676957,
+        "recall": 0.7817109144542773,
+        "f1": 0.8264033264033264,
+        "confusion": {
+          "tn": 1111,
+          "fp": 112,
+          "fn": 222,
+          "tp": 795
+        }
+      },
+      "healthy_minutes": 1.8899668111301442,
+      "false_alarms": 18,
+      "false_alarms_per_healthy_min": 9.523976767209225,
+      "healthy_runs_with_false_alarm": 4,
+      "n_healthy_runs": 4,
+      "n_fault_runs": 12,
+      "n_detected": 12,
+      "n_missed": 0,
+      "detection_rate": 1.0,
+      "delay_median": 0.8298110577679578,
+      "delay_mean": 1.048927563385231,
+      "delay_p90": 2.5237898788840383,
+      "delay_max": 2.9420610092209083,
+      "n_early_active": 1,
+      "by_scenario": {
+        "gradual_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.09059919422099953,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.3187068250291998,
+          "delay_mean": 0.3187068250291998,
+          "delay_p90": 0.5736722850525596,
+          "delay_max": 0.6374136500583996,
+          "n_early_active": 1
+        },
+        "gradual_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.11459096404753255,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 2.768158141130557,
+          "delay_mean": 2.768158141130557,
+          "delay_p90": 2.907280435602838,
+          "delay_max": 2.9420610092209083,
+          "n_early_active": 0
+        },
+        "healthy_load": {
+          "n_runs": 2,
+          "false_alarms": 9,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "healthy_speed": {
+          "n_runs": 2,
+          "false_alarms": 3,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "mild_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.16567296474106807,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.8298110577679578,
+          "delay_mean": 0.8298110577679578,
+          "delay_p90": 0.9310272583507055,
+          "delay_max": 0.9563313084963925,
+          "n_early_active": 0
+        },
+        "mild_j2": {
+          "n_runs": 2,
+          "false_alarms": 1,
+          "healthy_minutes": 0.203204522774094,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 1.453864316777179,
+          "delay_mean": 1.453864316777179,
+          "delay_p90": 1.8024539285382575,
+          "delay_max": 1.8896013314785272,
+          "n_early_active": 0
+        },
+        "severe_j1": {
+          "n_runs": 2,
+          "false_alarms": 5,
+          "healthy_minutes": 0.22414932381717775,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.6255202854846669,
+          "delay_mean": 0.6255202854846669,
+          "delay_p90": 0.9744022503360309,
+          "delay_max": 1.061622741548872,
+          "n_early_active": 0
+        },
+        "severe_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.15841650819593917,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.2975047541218254,
+          "delay_mean": 0.2975047541218254,
+          "delay_p90": 0.3153866053768171,
+          "delay_max": 0.31985706819056503,
+          "n_early_active": 0
+        }
+      }
+    },
+    "baseline": {
+      "n_runs": 16,
+      "n_windows": 2240,
+      "window_alarm_state": {
+        "precision": 0.9459815546772069,
+        "recall": 0.7059980334316618,
+        "f1": 0.8085585585585586,
+        "confusion": {
+          "tn": 1182,
+          "fp": 41,
+          "fn": 299,
+          "tp": 718
+        }
+      },
+      "window_raw_decision": {
+        "precision": 0.9676945668135095,
+        "recall": 0.647984267453294,
+        "f1": 0.7762073027090693,
+        "confusion": {
+          "tn": 1201,
+          "fp": 22,
+          "fn": 358,
+          "tp": 659
+        }
+      },
+      "healthy_minutes": 1.8899668111301442,
+      "false_alarms": 4,
+      "false_alarms_per_healthy_min": 2.1164392816020503,
+      "healthy_runs_with_false_alarm": 2,
+      "n_healthy_runs": 4,
+      "n_fault_runs": 12,
+      "n_detected": 12,
+      "n_missed": 0,
+      "detection_rate": 1.0,
+      "delay_median": 0.7898750218123514,
+      "delay_mean": 1.5655942300518981,
+      "delay_p90": 3.3072804356028387,
+      "delay_max": 6.2896013314785275,
+      "n_early_active": 1,
+      "by_scenario": {
+        "gradual_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.09059919422099953,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.1187068250291996,
+          "delay_mean": 0.1187068250291996,
+          "delay_p90": 0.21367228505255928,
+          "delay_max": 0.2374136500583992,
+          "n_early_active": 1
+        },
+        "gradual_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.11459096404753255,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 3.1681581411305575,
+          "delay_mean": 3.1681581411305575,
+          "delay_p90": 3.3072804356028382,
+          "delay_max": 3.3420610092209087,
+          "n_early_active": 0
+        },
+        "healthy_load": {
+          "n_runs": 2,
+          "false_alarms": 3,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "healthy_speed": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "mild_j1": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.16567296474106807,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 1.9298110577679584,
+          "delay_mean": 1.9298110577679584,
+          "delay_p90": 2.031027258350706,
+          "delay_max": 2.056331308496393,
+          "n_early_active": 0
+        },
+        "mild_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.203204522774094,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 3.6038643167771793,
+          "delay_mean": 3.6038643167771793,
+          "delay_p90": 5.752453928538258,
+          "delay_max": 6.2896013314785275,
+          "n_early_active": 0
+        },
+        "severe_j1": {
+          "n_runs": 2,
+          "false_alarms": 1,
+          "healthy_minutes": 0.22414932381717775,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.37552028548466687,
+          "delay_mean": 0.37552028548466687,
+          "delay_p90": 0.6044022503360307,
+          "delay_max": 0.6616227415488716,
+          "n_early_active": 0
+        },
+        "severe_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.15841650819593917,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.19750475412182533,
+          "delay_mean": 0.19750475412182533,
+          "delay_p90": 0.21538660537681667,
+          "delay_max": 0.2198570681905645,
+          "n_early_active": 0
+        }
+      }
+    }
+  },
+  "stress": {
+    "rf": {
+      "n_runs": 8,
+      "n_windows": 1120,
+      "window_alarm_state": {
+        "precision": 0.8058252427184466,
+        "recall": 0.23055555555555557,
+        "f1": 0.3585313174946005,
+        "confusion": {
+          "tn": 740,
+          "fp": 20,
+          "fn": 277,
+          "tp": 83
+        }
+      },
+      "window_raw_decision": {
+        "precision": 0.8241758241758241,
+        "recall": 0.20833333333333334,
+        "f1": 0.33259423503325947,
+        "confusion": {
+          "tn": 744,
+          "fp": 16,
+          "fn": 285,
+          "tp": 75
+        }
+      },
+      "healthy_minutes": 1.1814188360839928,
+      "false_alarms": 3,
+      "false_alarms_per_healthy_min": 2.5393195946866682,
+      "healthy_runs_with_false_alarm": 1,
+      "n_healthy_runs": 4,
+      "n_fault_runs": 4,
+      "n_detected": 4,
+      "n_missed": 0,
+      "detection_rate": 1.0,
+      "delay_median": 4.726854583467575,
+      "delay_mean": 5.3300451739602055,
+      "delay_p90": 7.068120310934628,
+      "delay_max": 7.844574573582934,
+      "n_early_active": 0,
+      "by_scenario": {
+        "gradual_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.0821170034578178,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 4.639145326705659,
+          "delay_mean": 4.639145326705659,
+          "delay_p90": 5.132944023811996,
+          "delay_max": 5.25639369808858,
+          "n_early_active": 0
+        },
+        "healthy_load": {
+          "n_runs": 2,
+          "false_alarms": 1,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "healthy_speed": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "severe_j1": {
+          "n_runs": 2,
+          "false_alarms": 2,
+          "healthy_minutes": 0.1659684992928416,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 6.020945021214752,
+          "delay_mean": 6.020945021214752,
+          "delay_p90": 7.479848663109298,
+          "delay_max": 7.844574573582934,
+          "n_early_active": 0
+        }
+      }
+    },
+    "baseline": {
+      "n_runs": 8,
+      "n_windows": 1120,
+      "window_alarm_state": {
+        "precision": 0.4238310708898944,
+        "recall": 0.7805555555555556,
+        "f1": 0.5493646138807429,
+        "confusion": {
+          "tn": 378,
+          "fp": 382,
+          "fn": 79,
+          "tp": 281
+        }
+      },
+      "window_raw_decision": {
+        "precision": 0.4060031595576619,
+        "recall": 0.7138888888888889,
+        "f1": 0.5176233635448136,
+        "confusion": {
+          "tn": 384,
+          "fp": 376,
+          "fn": 103,
+          "tp": 257
+        }
+      },
+      "healthy_minutes": 1.1814188360839928,
+      "false_alarms": 4,
+      "false_alarms_per_healthy_min": 3.3857594595822245,
+      "healthy_runs_with_false_alarm": 2,
+      "n_healthy_runs": 4,
+      "n_fault_runs": 4,
+      "n_detected": 2,
+      "n_missed": 2,
+      "detection_rate": 0.5,
+      "delay_median": 0.5281968490442903,
+      "delay_mean": 0.5281968490442903,
+      "delay_p90": 0.9507543282797226,
+      "delay_max": 1.0563936980885806,
+      "n_early_active": 1,
+      "by_scenario": {
+        "gradual_j2": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.0821170034578178,
+          "n_fault_runs": 2,
+          "n_detected": 2,
+          "n_missed": 0,
+          "detection_rate": 1.0,
+          "delay_median": 0.5281968490442903,
+          "delay_mean": 0.5281968490442903,
+          "delay_p90": 0.9507543282797226,
+          "delay_max": 1.0563936980885806,
+          "n_early_active": 1
+        },
+        "healthy_load": {
+          "n_runs": 2,
+          "false_alarms": 0,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "healthy_speed": {
+          "n_runs": 2,
+          "false_alarms": 2,
+          "healthy_minutes": 0.4666666666666667,
+          "n_fault_runs": 0,
+          "n_detected": 0,
+          "n_missed": 0,
+          "detection_rate": NaN,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        },
+        "severe_j1": {
+          "n_runs": 2,
+          "false_alarms": 2,
+          "healthy_minutes": 0.1659684992928416,
+          "n_fault_runs": 2,
+          "n_detected": 0,
+          "n_missed": 2,
+          "detection_rate": 0.0,
+          "delay_median": NaN,
+          "delay_mean": NaN,
+          "delay_p90": NaN,
+          "delay_max": NaN,
+          "n_early_active": 0
+        }
+      }
+    }
+  },
+  "note": "'val' is shown only for reference (used for selection); 'test' and 'stress' were not used for any training or tuning decision."
+}

@@ -1,0 +1,13 @@
+{
+  "window_s": 1.0,
+  "ref": [
+    0.0087051903374,
+    0.019909929312999997
+  ],
+  "threshold": 0.8,
+  "n_on": 1,
+  "n_off": 5,
+  "stride_s": 0.1,
+  "monitor_start_s": 2.0,
+  "f_sample": 100
+}

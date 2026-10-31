@@ -1,0 +1,20 @@
+{
+  "train": {
+    "n_windows": 13027,
+    "joint_accuracy": 1.0,
+    "mult_mae": 0.028089498512205213,
+    "mult_median_abs_error": 0.014956887471671232,
+    "mult_bias": -0.00041551541546078956
+  },
+  "val": {
+    "n_windows": 4372,
+    "joint_accuracy": 0.8565873741994511,
+    "mult_mae": 0.42026599061884845,
+    "mult_median_abs_error": 0.36588181476732284,
+    "mult_bias": -0.06472317085433947
+  },
+  "train_mult_range": [
+    1.619548913,
+    3.999520075
+  ]
+}

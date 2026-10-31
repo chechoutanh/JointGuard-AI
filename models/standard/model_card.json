@@ -1,0 +1,51 @@
+{
+  "feature_names": [
+    "j1_tau_rms",
+    "j1_tau_std",
+    "j1_tau_maxabs",
+    "j1_dtau_rms",
+    "j1_tau_dir_mean",
+    "j1_e_rms",
+    "j1_e_maxabs",
+    "j1_e_dir_mean",
+    "j1_ev_rms",
+    "j1_qd_des_rms",
+    "j1_qdd_des_rms",
+    "j1_q_des_mean",
+    "j2_tau_rms",
+    "j2_tau_std",
+    "j2_tau_maxabs",
+    "j2_dtau_rms",
+    "j2_tau_dir_mean",
+    "j2_e_rms",
+    "j2_e_maxabs",
+    "j2_e_dir_mean",
+    "j2_ev_rms",
+    "j2_qd_des_rms",
+    "j2_qdd_des_rms",
+    "j2_q_des_mean"
+  ],
+  "window_s": 1.0,
+  "stride_s": 0.1,
+  "monitor_start_s": 2.0,
+  "f_sample": 100,
+  "threshold": 0.4,
+  "n_on": 8,
+  "n_off": 5,
+  "rf_params": {
+    "n_estimators": 200,
+    "max_depth": null,
+    "min_samples_leaf": 2,
+    "max_features": "sqrt",
+    "class_weight": null
+  },
+  "seed": 20261024,
+  "versions": {
+    "python": "3.13.17",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "scikit-learn": "1.9.1"
+  },
+  "score_note": "predict_proba output = model score, NOT a calibrated probability",
+  "data_dir": "data/standard"
+}

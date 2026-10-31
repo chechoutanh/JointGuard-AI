@@ -1,0 +1,222 @@
+{
+  "note": "Diagnosis trained on train windows only; test and stress are first looked at here.",
+  "later_s": 2.0,
+  "test": {
+    "windows": {
+      "n_windows": 4670,
+      "joint_accuracy": 0.9445396145610279,
+      "mult_mae": 0.2809675218183622,
+      "mult_median_abs_error": 0.23098366316584884,
+      "mult_bias": 0.007996330776010769
+    },
+    "runs": {
+      "at_alarm": {
+        "n_runs": 32,
+        "joint_correct": 30,
+        "mult_median_abs_error": 0.36499608604099654,
+        "mult_p90_abs_error": 0.6828820009341336
+      },
+      "later": {
+        "n_runs": 23,
+        "joint_correct": 23,
+        "mult_median_abs_error": 0.20152170090003407,
+        "mult_p90_abs_error": 0.6436597345900146
+      }
+    },
+    "by_scenario": {
+      "gradual_j1": {
+        "at_alarm": {
+          "n_runs": 6,
+          "joint_correct": 6,
+          "mult_median_abs_error": 0.16139253369412798,
+          "mult_p90_abs_error": 0.5173661799993469
+        },
+        "later": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.24289614433688778,
+          "mult_p90_abs_error": 0.5372943601600372
+        }
+      },
+      "gradual_j2": {
+        "at_alarm": {
+          "n_runs": 6,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.5866398141877799,
+          "mult_p90_abs_error": 0.6890558025648296
+        },
+        "later": {
+          "n_runs": 5,
+          "joint_correct": 5,
+          "mult_median_abs_error": 0.09999234783601096,
+          "mult_p90_abs_error": 0.4210734695565221
+        }
+      },
+      "mild_j1": {
+        "at_alarm": {
+          "n_runs": 6,
+          "joint_correct": 6,
+          "mult_median_abs_error": 0.3522292063948469,
+          "mult_p90_abs_error": 0.47487594937489996
+        },
+        "later": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.21724198822695495,
+          "mult_p90_abs_error": 0.27466684827852034
+        }
+      },
+      "mild_j2": {
+        "at_alarm": {
+          "n_runs": 6,
+          "joint_correct": 6,
+          "mult_median_abs_error": 0.14607210409943805,
+          "mult_p90_abs_error": 0.27155217811018795
+        },
+        "later": {
+          "n_runs": 2,
+          "joint_correct": 2,
+          "mult_median_abs_error": 0.0879826909670548,
+          "mult_p90_abs_error": 0.15434960254075764
+        }
+      },
+      "severe_j1": {
+        "at_alarm": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.7084505272456483,
+          "mult_p90_abs_error": 1.1313543039216802
+        },
+        "later": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.648951122551441,
+          "mult_p90_abs_error": 0.8068100228582228
+        }
+      },
+      "severe_j2": {
+        "at_alarm": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.47688817458224264,
+          "mult_p90_abs_error": 0.5512046464324424
+        },
+        "later": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.09049003652011267,
+          "mult_p90_abs_error": 0.17244199928843398
+        }
+      }
+    }
+  },
+  "stress": {
+    "windows": {
+      "n_windows": 5573,
+      "joint_accuracy": 0.775883725103176,
+      "mult_mae": 0.6527096620623728,
+      "mult_median_abs_error": 0.5603723945497356,
+      "mult_bias": -0.09323161419978748
+    },
+    "runs": {
+      "at_alarm": {
+        "n_runs": 26,
+        "joint_correct": 23,
+        "mult_median_abs_error": 0.5300883070824266,
+        "mult_p90_abs_error": 1.1871082160883717
+      },
+      "later": {
+        "n_runs": 17,
+        "joint_correct": 14,
+        "mult_median_abs_error": 0.5711501901943639,
+        "mult_p90_abs_error": 0.8353477777563211
+      }
+    },
+    "by_scenario": {
+      "gradual_j1": {
+        "at_alarm": {
+          "n_runs": 6,
+          "joint_correct": 6,
+          "mult_median_abs_error": 1.0081546594382058,
+          "mult_p90_abs_error": 1.2507991622199506
+        },
+        "later": {
+          "n_runs": 2,
+          "joint_correct": 2,
+          "mult_median_abs_error": 0.25968591680313713,
+          "mult_p90_abs_error": 0.30609390875327513
+        }
+      },
+      "gradual_j2": {
+        "at_alarm": {
+          "n_runs": 6,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.29889439841095444,
+          "mult_p90_abs_error": 0.7084918017318032
+        },
+        "later": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.527406484620335,
+          "mult_p90_abs_error": 0.7489656545198524
+        }
+      },
+      "mild_j1": {
+        "at_alarm": {
+          "n_runs": 4,
+          "joint_correct": 3,
+          "mult_median_abs_error": 0.5153386776891026,
+          "mult_p90_abs_error": 0.6580991029813602
+        },
+        "later": {
+          "n_runs": 4,
+          "joint_correct": 1,
+          "mult_median_abs_error": 0.5205707010727523,
+          "mult_p90_abs_error": 0.6321261324542953
+        }
+      },
+      "mild_j2": {
+        "at_alarm": {
+          "n_runs": 2,
+          "joint_correct": 2,
+          "mult_median_abs_error": 0.479805632996988,
+          "mult_p90_abs_error": 0.7074670720684152
+        },
+        "later": {
+          "n_runs": 1,
+          "joint_correct": 1,
+          "mult_median_abs_error": 0.5740342391335509,
+          "mult_p90_abs_error": 0.5740342391335509
+        }
+      },
+      "severe_j1": {
+        "at_alarm": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.36312822297417235,
+          "mult_p90_abs_error": 0.6186700107732803
+        },
+        "later": {
+          "n_runs": 2,
+          "joint_correct": 2,
+          "mult_median_abs_error": 0.0907478578086216,
+          "mult_p90_abs_error": 0.14067937898805005
+        }
+      },
+      "severe_j2": {
+        "at_alarm": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.9054905753443441,
+          "mult_p90_abs_error": 1.4096661936366426
+        },
+        "later": {
+          "n_runs": 4,
+          "joint_correct": 4,
+          "mult_median_abs_error": 0.8429784067362249,
+          "mult_p90_abs_error": 1.3731231351313642
+        }
+      }
+    }
+  }
+}

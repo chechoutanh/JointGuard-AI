@@ -1,0 +1,9 @@
+run_id,scenario,severity,fault_joint,fault_kind,t_onset,t_label,healthy_minutes,false_alarms,early_alarms,is_fault_run,detected,t_detect,delay,detect_type
+S0001,healthy_speed,healthy,0,none,inf,inf,0.23333333333333334,1,0,False,False,,,
+S0002,healthy_speed,healthy,0,none,inf,inf,0.23333333333333334,1,0,False,False,,,
+S0003,healthy_load,healthy,0,none,inf,inf,0.23333333333333334,0,0,False,False,,,
+S0004,healthy_load,healthy,0,none,inf,inf,0.23333333333333334,0,0,False,False,,,
+S0005,severe_j1,severe,1,abrupt,5.1454254264170665,5.1454254264170665,0.05259042377361778,1,0,True,False,,,
+S0006,severe_j1,severe,1,abrupt,8.79268453115343,8.79268453115343,0.11337807551922383,1,0,True,False,,,
+S0007,gradual_j2,gradual,2,gradual,4.77517539549563,7.768103044677262,0.04641958992492717,0,1,True,True,7.768103044677262,0.0,early_active
+S0008,gradual_j2,gradual,2,gradual,4.131844811973438,6.43360630191142,0.03569741353289064,0,0,True,True,7.49,1.0563936980885806,new_alarm
