@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JointGuard AI</title>
 <meta name="description" content="A simulation study: detecting abnormal joint friction on a 2-joint robot arm with a Random Forest, without false alarms when the arm is simply loaded or fast.">
+<script>
+/* Apply the saved theme before first paint so there is no flash. */
+try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -75,6 +79,20 @@ code, .mono { font-family: var(--f-mono); font-size: .88em; }
 .top nav { display: flex; gap: 14px; flex-wrap: wrap; font-size: .88rem; }
 .top nav a { color: var(--muted); text-decoration: none; }
 .top nav a:hover { color: var(--ink); }
+.top-end { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.theme-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: none;
+  background: var(--sunk); color: var(--ink); border: 1px solid var(--line); border-radius: 50%; cursor: pointer; padding: 0;
+}
+.theme-btn:hover { border-color: var(--ink); }
+.theme-btn svg { width: 17px; height: 17px; }
+.theme-btn .i-sun { display: none; }
+:root[data-theme="dark"] .theme-btn .i-sun { display: block; }
+:root[data-theme="dark"] .theme-btn .i-moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-btn .i-sun { display: block; }
+  :root:not([data-theme="light"]) .theme-btn .i-moon { display: none; }
+}
 
 /* hero */
 .hero { display: grid; gap: 18px; padding-block: 44px 26px; }
@@ -230,10 +248,16 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
 <div class="wrap">
   <header class="top">
     <b>JointGuard AI</b>
-    <nav aria-label="Sections">
-      <a href="#questions">Scope</a><a href="#arm">The arm</a><a href="#fault">The fault</a><a href="#hard">Why it's hard</a>
-      <a href="#features">What the AI reads</a><a href="#alarm">Alarm rule</a><a href="#diagnosis">Diagnosis</a><a href="#results">Results</a><a href="#limits">Limits</a><a href="#built">My role</a><a href="#files">Files</a>
-    </nav>
+    <div class="top-end">
+      <nav aria-label="Sections">
+        <a href="#questions">Scope</a><a href="#arm">The arm</a><a href="#fault">The fault</a><a href="#hard">Why it's hard</a>
+        <a href="#features">What the AI reads</a><a href="#alarm">Alarm rule</a><a href="#diagnosis">Diagnosis</a><a href="#results">Results</a><a href="#limits">Limits</a><a href="#built">My role</a><a href="#files">Files</a>
+      </nav>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch to dark mode" title="Switch to dark mode">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
   </header>
 
   <section class="hero">
@@ -561,6 +585,22 @@ window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\
   $("files").hidden = !shown.length;
   for (const a of document.querySelectorAll('.top nav a[href="#files"]')) a.hidden = !shown.length;
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  /* Light/dark toggle. Starts from the OS setting; an explicit choice is remembered. */
+  const darkMq = matchMedia("(prefers-color-scheme: dark)");
+  const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : darkMq.matches; };
+  function syncThemeBtn() {
+    const msg = isDark() ? "Switch to light mode" : "Switch to dark mode";
+    $("themeBtn").setAttribute("aria-label", msg); $("themeBtn").title = msg;
+  }
+  $("themeBtn").onclick = () => {
+    const next = isDark() ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    syncThemeBtn();
+  };
+  darkMq.addEventListener("change", syncThemeBtn);
+  syncThemeBtn();
   const DESC = {
     healthy: "Healthy arm, 0.5 kg payload, normal speed. Nothing is injected, so the model should stay at NORMAL for the whole run.",
     heavy: "Healthy arm carrying 2.0 kg. Joint torque rises noticeably, but no fault is injected, so the model should stay quiet.",
