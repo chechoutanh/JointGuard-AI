@@ -3,7 +3,8 @@
 Phát hiện bất thường ma sát khớp trên robot phẳng 2 bậc tự do (2-DOF) bằng **mô phỏng động lực học** và **Random Forest**.
 
 > Toàn bộ dữ liệu được tạo bằng mô phỏng. Kết quả **chưa được xác nhận trên robot thật**. Phát hiện bất thường ở đây
-> **không phải** dự báo thời điểm hỏng hay tuổi thọ còn lại. Dự án được xây dựng với sự hỗ trợ của trợ lý AI (Claude).
+> **không phải** dự báo thời điểm hỏng hay tuổi thọ còn lại. Dự án được xây dựng với sự hỗ trợ của trợ lý AI (Claude),
+> dưới sự hướng dẫn của TS. Nguyễn Vĩnh Hảo (ĐH Bách khoa TP.HCM) và ThS. Phùng Văn Hưng (Trường Phổ thông Năng khiếu, ĐHQG-HCM).
 
 - Câu hỏi nghiên cứu, kết quả và giới hạn: [`reports/standard/report_vi.md`](reports/standard/report_vi.md) (bản Word: `report_vi.docx`);
   bản tiếng Anh: [`reports/standard/report_en.md`](reports/standard/report_en.md) (`report_en.docx`, tạo bằng `make_report --lang en`);

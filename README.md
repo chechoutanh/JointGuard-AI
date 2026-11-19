@@ -2,7 +2,7 @@
 
 **Detecting and diagnosing abnormal joint friction in a simulated robot arm, using only the signals its controller already has.**
 
-JointGuard AI is an independent research project by **Tuan Anh Nguyen**. It simulates a two-joint robot arm from its equations of motion, injects friction faults in a controlled way, and trains machine-learning models that:
+JointGuard AI is an independent research project by **Tuan Anh Nguyen**, advised by **Dr. Nguyen Vinh Hao** (HCMUT) and **M.Sc. Phung Van Hung** (VNU-HCM High School for the Gifted). It simulates a two-joint robot arm from its equations of motion, injects friction faults in a controlled way, and trains machine-learning models that:
 
 1. **detect** when one joint's friction rises abnormally, without raising an alarm when a healthy arm simply carries a heavier load or moves faster, and
 2. **diagnose** the fault once the alarm is on: which joint, and roughly how much its friction has increased.
@@ -353,7 +353,7 @@ Retraining or re-evaluating needs those regenerated files. The demo, the web pag
 
 ## Background and use of AI
 
-This project grew out of a summer internship in a university control and automation lab, where I worked with industrial robot arms and their control software.
+This project grew out of a summer internship in a university control and automation lab, where I worked with industrial robot arms and their control software. Dr. Nguyen Vinh Hao (HCMUT) and M.Sc. Phung Van Hung (VNU-HCM High School for the Gifted) advised the project.
 
 I formulated the research question and the fault definition, specified the simulation and evaluation design, ran the experiments and reviewed the results. The code, experiments and reports were built with help from an AI coding assistant (Claude), following my questions and decisions. Every number in this repository's reports is read from its result files.
 
