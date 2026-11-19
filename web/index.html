@@ -251,7 +251,7 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
     <div class="top-end">
       <nav aria-label="Sections">
         <a href="#questions">Scope</a><a href="#arm">The arm</a><a href="#fault">The fault</a><a href="#hard">Why it's hard</a>
-        <a href="#features">What the AI reads</a><a href="#alarm">Alarm rule</a><a href="#diagnosis">Diagnosis</a><a href="#results">Results</a><a href="#limits">Limits</a><a href="#built">My role</a><a href="#files">Files</a>
+        <a href="#features">What the AI reads</a><a href="#alarm">Alarm rule</a><a href="#diagnosis">Diagnosis</a><a href="#results">Results</a><a href="#followup">Follow-up</a><a href="#limits">Limits</a><a href="#built">My role</a><a href="#files">Files</a>
       </nav>
       <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch to dark mode" title="Switch to dark mode">
         <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -511,7 +511,42 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
     </div>
     <div class="prose">
       <p>Inside the training range, the Random Forest caught every fault (32 of 32) with a median delay of 1.5 s, while the error-threshold baseline caught half. Outside the range it broke down. It mistook heavier loads and faster motion for friction, and 15 of 20 healthy stress runs had at least one false alarm. The model has not learned a general notion of friction. It learned what friction looks like within the conditions it was trained on.</p>
-      <p>The "fast motion" scenario in the player above shows this: that run sits at the edge of the training range and raises 5 false alarms in 30 s.</p>
+      <p>The "fast motion" scenario in the player above shows this: that run sits at the edge of the training range and raises 5 false alarms in 30 s. A follow-up experiment, below, fixes most of this.</p>
+    </div>
+  </section>
+
+  <!-- 7b -->
+  <section class="step" id="followup">
+    <div class="step-head"><span class="label">Stage 8 · Follow-up experiment</span><h2>Let the physics subtract what it already knows</h2></div>
+    <div class="prose">
+      <p>The controller already knows the nominal arm and the payload the operator declared. So I subtracted the torque that this nominal model needs from the torque actually applied. What is left is what the model cannot explain: friction, plus any error in the declared payload, plus noise.</p>
+      <p>Friction depends on velocity. A payload error depends on pose and acceleration. Inside every 1 s window, a small least-squares fit separates the two. Its main output is a <b>friction ratio per joint</b>: about 1 when the joint is healthy, about 3 when its friction has tripled, whatever the load or speed. A Random Forest then reads five such dimensionless numbers instead of the original 24.</p>
+      <p><b>The first version failed.</b> It used the arm's <i>target</i> acceleration. The arm always lags its target a little, and for a sine motion that lag leaves a term proportional to velocity and growing with the square of the frequency. That is exactly what viscous friction looks like, so fast healthy motion still looked like friction. Estimating acceleration from the measured velocity fixed it. Because I looked at the old stress set while finding this bug, I then froze the method and generated a <b>new stress set</b> (stress3) to test it.</p>
+    </div>
+    <figure class="figure">
+      <span class="label">Same recorded runs, two detectors</span>
+        <span class="toggle" role="group" aria-label="Recorded run" id="cmpToggle" style="flex-wrap:wrap"><button type="button" data-r="fast" aria-pressed="true">Fast motion (no fault)</button><button type="button" data-r="heavy" aria-pressed="false">Heavy payload (no fault)</button><button type="button" data-r="abrupt_j2" aria-pressed="false">Joint 2 ×3</button><button type="button" data-r="gradual_j1" aria-pressed="false">Gradual, joint 1</button></span>
+      <div class="chart"><header><b>Original Random Forest · score</b><span class="key"><span><i style="background:var(--score)"></i>score</span><span><i style="background:var(--warn)"></i>threshold</span><span><i style="background:var(--alarm);opacity:.5"></i>alarm on</span></span></header><canvas id="cmpOrig"></canvas></div>
+      <div class="chart"><header><b>Residual Random Forest · score</b><span class="key"><span><i style="background:var(--score)"></i>score</span><span><i style="background:var(--warn)"></i>threshold</span><span><i style="background:var(--alarm);opacity:.5"></i>alarm on</span></span></header><canvas id="cmpRes"></canvas></div>
+      <div class="chart"><header><b>Estimated friction ratio</b><span class="key"><span><i style="background:var(--j1)"></i>joint 1</span><span><i style="background:var(--j2)"></i>joint 2</span><span><i style="background:var(--ink)"></i>truth</span></span></header><canvas id="cmpRatio"></canvas></div>
+      <figcaption id="cmpCap">Recorded with the same simulator, trajectory and noise as the player above.</figcaption>
+    </figure>
+    <figure class="figure">
+      <h3>Fresh stress set (stress3) · generated after the method was frozen</h3>
+      <span class="label">60 runs · 40 with a fault · heavier payloads, faster motion, point-to-point trajectories</span>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Detector</th><th class="r">Faults detected</th><th class="r">False alarms / healthy min</th><th class="r">Healthy runs with a false alarm</th><th class="r">Median delay</th></tr></thead>
+        <tbody>
+          <tr><td>Random Forest, original 24 features</td><td class="r">24 / 40</td><td class="r">4.74</td><td class="r">20 / 20</td><td class="r">1.1 s</td></tr>
+          <tr><td><b>Random Forest, 5 residual features</b></td><td class="r"><b>40 / 40</b></td><td class="r"><b>0.08</b></td><td class="r"><b>1 / 20</b></td><td class="r">0.6 s</td></tr>
+          <tr><td>Physics rule only: alarm when a friction ratio exceeds 1.3 (no ML)</td><td class="r">40 / 40</td><td class="r">0.41</td><td class="r">3 / 20</td><td class="r">0.4 s</td></tr>
+          <tr><td>Error-threshold baseline</td><td class="r">21 / 40</td><td class="r">3.52</td><td class="r">16 / 20</td><td class="r">4.0 s</td></tr>
+        </tbody>
+      </table></div>
+      <figcaption>Every remaining false alarm happened on point-to-point motion, which never appears in training: while the arm stops and starts, friction is barely observable. Inside the training range the residual detector also caught 32/32 test faults with no false alarms. Source: <code>results/residual/summary.csv</code>; method, the failed first version and what was seen when: <code>docs/RESIDUAL_EXPERIMENT.md</code>.</figcaption>
+    </figure>
+    <div class="prose">
+      <p>The original model's most important feature was direction-weighted tracking error. It turns out to be a noisy proxy of the same quantity: friction projected on the direction of motion. On training data the two are correlated at 0.80. On the fresh stress set, 39% of healthy windows push that error feature above its normal range; the friction ratio stays normal in 99% of them.</p>
     </div>
   </section>
 
@@ -523,13 +558,13 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
       <li>Higher friction is one way to model a fault. It does not show that the cause is lost lubrication, and the system cannot identify causes.</li>
       <li>Only one fault type, on one joint at a time.</li>
       <li>Each test scenario has only 4–8 runs, and no confidence intervals were computed.</li>
-      <li>The model does not generalise to heavier loads or faster motion than it was trained on.</li>
+      <li>The original model does not generalise to heavier loads or faster motion than it was trained on. The residual detector largely fixes this for detection, but it still raises occasional false alarms on point-to-point motion, and the diagnosis stage was not retrained on it.</li>
       <li>The diagnosis names a joint and a friction level, not a cause. On a false alarm it is wrong too, and its friction estimate is typically off by 0.2–0.4× within the training range and more outside it.</li>
       <li>This is anomaly detection. It does not predict when a part will fail or how much life it has left.</li>
     </ul>
     <div class="prose">
       <h3>Next steps</h3>
-      <p>Give the model the declared payload, or the residual between measured torque and the torque a nominal physics model predicts, so that load and friction separate by construction. Then re-test on a fresh stress set, since the current one has already been looked at.</p>
+      <p>The physics-residual features are done for detection (see the follow-up above). Next: add point-to-point motion to training, use the friction ratio for diagnosis too, and test whether the residual still works when the nominal model is not exact, which is always the case on a real arm.</p>
     </div>
   </section>
 
@@ -576,7 +611,8 @@ window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\
   const LINKS = [
     { label: "Source code", desc: "GitHub repository: simulator, models, tests and scripts", href: "https://github.com/chechoutanh/JointGuard-AI" },
     { label: "Technical report (PDF)", desc: "7-page write-up of methods, results and limitations", href: "jointguard_report.pdf" },
-    { label: "Detailed results report", desc: "Every table and figure, generated automatically from the result files", href: "https://github.com/chechoutanh/JointGuard-AI/blob/main/reports/standard/report_en.md" }
+    { label: "Detailed results report", desc: "Every table and figure, generated automatically from the result files", href: "https://github.com/chechoutanh/JointGuard-AI/blob/main/reports/standard/report_en.md" },
+    { label: "Follow-up: physics-residual features", desc: "Method, the failed first version, the fresh stress sets and all results", href: "https://github.com/chechoutanh/JointGuard-AI/blob/main/docs/RESIDUAL_EXPERIMENT.md" }
   ];
   const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const shown = LINKS.filter(l => l.href);
@@ -906,13 +942,55 @@ window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\
     }
   }
 
-  function redrawStatic() { drawFriction(); drawSchedule(); drawScatter(); drawDiag(); }
+  /* ---------- follow-up: original vs residual detector ---------- */
+  let DR = null, cmpRun = "fast";
+  function cmpPanel(id, pts, opt) {
+    const [g, w, h] = fit($(id)); g.clearRect(0, 0, w, h);
+    const L = 40, R = 6, T = 6, B = 16, iw = w - L - R, ih = h - T - B, lo = opt.lo, hi = opt.hi;
+    const X = tt => L + tt / 30 * iw, Y = v => T + ih - (Math.min(Math.max(v, lo), hi) - lo) / (hi - lo) * ih;
+    g.fillStyle = css("--alarm-soft");
+    for (const [a, b] of opt.shade || []) g.fillRect(X(a), T, Math.max(2, X(Math.min(b, 30)) - X(a)), ih);
+    g.strokeStyle = css("--line"); g.fillStyle = css("--muted"); g.font = "10px " + css("--f-mono"); g.lineWidth = 1;
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (const v of opt.ticks) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(L + iw, Y(v)); g.stroke(); g.fillText((opt.fmt || (x => x))(v), L - 5, Y(v)); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    const step = iw < 420 ? 10 : 5;  // fewer labels on phones
+    for (let s = 0; s <= 30; s += step) g.fillText(s + " s", Math.min(Math.max(X(s), L + 10), L + iw - 12), T + ih + 3);
+    if (opt.tl != null) { g.strokeStyle = css("--ink"); g.setLineDash([2, 3]); g.beginPath(); g.moveTo(X(opt.tl), T); g.lineTo(X(opt.tl), T + ih); g.stroke(); g.setLineDash([]); }
+    if (opt.hline != null) { g.strokeStyle = css("--warn"); g.setLineDash([5, 4]); g.beginPath(); g.moveTo(L, Y(opt.hline)); g.lineTo(L + iw, Y(opt.hline)); g.stroke(); g.setLineDash([]); }
+    g.lineWidth = 1.6; g.lineJoin = "round";
+    for (const s of pts) { g.strokeStyle = s.color; g.beginPath(); s.p.forEach((q, i) => i ? g.lineTo(X(q[0]), Y(q[1])) : g.moveTo(X(q[0]), Y(q[1]))); g.stroke(); }
+  }
+  function shadeOf(W) { const out = []; let st = null; for (const w of W) { if (w[2] && st === null) st = w[0]; if (!w[2] && st !== null) { out.push([st, w[0]]); st = null; } } if (st !== null) out.push([st, 30]); return out; }
+  function drawCmp() {
+    if (!DR) return;
+    const o = D.scenarios.find(s => s.id === cmpRun), r = DR.scenarios.find(s => s.id === cmpRun);
+    const sc = { lo: 0, hi: 1, ticks: [0, .5, 1], tl: o.t_label };
+    cmpPanel("cmpOrig", [{ p: o.windows.map(w => [w[0], w[1]]), color: css("--score") }], { ...sc, hline: D.model.threshold, shade: shadeOf(o.windows) });
+    cmpPanel("cmpRes", [{ p: r.windows.map(w => [w[0], w[1]]), color: css("--score") }], { ...sc, hline: DR.model.threshold, shade: shadeOf(r.windows) });
+    const c = DR.window_cols, i1 = c.indexOf("j1_fric_ratio"), i2 = c.indexOf("j2_fric_ratio"), j = o.fault ? o.fault.joint : 1;
+    const ratio = [{ p: r.windows.map(w => [w[0], w[i1]]), color: css("--j1") }, { p: r.windows.map(w => [w[0], w[i2]]), color: css("--j2") }];
+    if (o.fault) ratio.push({ p: o.rows.map(q => [q[0], q[10 + j]]), color: css("--ink") });
+    cmpPanel("cmpRatio", ratio, { lo: .5, hi: 4, ticks: [1, 2, 3, 4], fmt: v => "×" + v, tl: o.t_label });
+    const n = x => x.false_alarms.length, onAfter = x => x.first_alarm_after_label;
+    const early = r.fault && r.fault.kind === "gradual" && n(r) && r.alarm_on[0] >= r.fault.t_start;
+    const cap = o.fault
+      ? `Fault at t = ${o.fault.t_start} s; dotted line = friction reaches 1.5×. Original: ${onAfter(o) != null ? "alarm " + o.delay_s.toFixed(1) + " s after that" : "no alarm"}, ${n(o)} false alarm(s). Residual: ` +
+        (early ? `alarm at t = ${r.alarm_on[0].toFixed(1)} s, as friction is just reaching 1.5× (counted as an early detection by the evaluation, not as a false alarm).` : `${onAfter(r) != null ? "alarm " + r.delay_s.toFixed(1) + " s after that" : "no alarm"}, ${n(r)} false alarm(s).`)
+      : `Healthy arm. Original: ${n(o)} false alarm(s) in 30 s. Residual: ${n(r)}. The friction ratios stay near ×1.`;
+    $("cmpCap").textContent = cap + " Thresholds were chosen on validation data for each detector separately.";
+  }
+
+  function redrawStatic() { drawFriction(); drawSchedule(); drawScatter(); drawDiag(); drawCmp(); }
 
   fetch("demo_runs.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
     D = d;
     buildPlayer(); buildImportance(); buildStrip(); redrawStatic();
     $("multSlider").oninput = drawFriction;
     for (const b of $("diagToggle").children) b.onclick = () => { diagRun = b.dataset.r; for (const o of $("diagToggle").children) o.setAttribute("aria-pressed", o === b); drawDiag(); };
+    for (const b of $("cmpToggle").children) b.onclick = () => { cmpRun = b.dataset.r; for (const o of $("cmpToggle").children) o.setAttribute("aria-pressed", o === b); drawCmp(); };
+    fetch("demo_runs_residual.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(d2 => { DR = d2; drawCmp(); })
+      .catch(e => { $("cmpCap").textContent = "Could not load the residual runs (demo_runs_residual.json): " + e.message; });
     for (const b of $("jointToggle").children) b.onclick = () => { joint = +b.dataset.j; for (const o of $("jointToggle").children) o.setAttribute("aria-pressed", o === b); drawScatter(); };
     new ResizeObserver(() => { render(); redrawStatic(); }).observe(document.body);
     const rerender = () => { render(); redrawStatic(); };

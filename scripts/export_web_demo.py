@@ -5,6 +5,7 @@ OnlineDetector), with fault keys pressed at fixed simulated times. Output is a c
 JSON with downsampled signals, the model score per window and the ground-truth panel.
 
   python -m scripts.export_web_demo --model models/standard --out web/demo_runs.json
+  python -m scripts.export_web_demo --model models/residual_residual --out web/demo_runs_residual.json
 """
 import argparse
 import json
@@ -33,6 +34,13 @@ SCENARIOS = [
 ]
 
 
+def window_feature_cols(feats):
+    """Features stored per window for the page: the original model's key features, or the residual ones."""
+    if "j1_e_dir_mean" in feats:
+        return ["j1_e_dir_mean", "j2_e_dir_mean", "j1_tau_rms", "j2_tau_rms"]
+    return ["j1_fric_ratio", "j2_fric_ratio", "dm_hat"]
+
+
 def run_scenario(cfg, bundle, diag_bundle, sid, title, payload, speed, fault, seed=1):
     assert payload in PAYLOADS
     f1, f2 = SPEEDS[speed]
@@ -40,12 +48,12 @@ def run_scenario(cfg, bundle, diag_bundle, sid, title, payload, speed, fault, se
     fr = cfg["friction"]
     sim = Simulator(cfg, payload, payload, fr["nominal_b"], fr["nominal_tau_c"], traj,
                     FaultSchedule(), 0.0005, 0.005, noise_seed=seed)
-    det = OnlineDetector(bundle, diag_bundle)
+    det = OnlineDetector(bundle, diag_bundle, payload, cfg)  # payload is declared exactly, as in the desktop demo
     lt = cfg["fault"]["label_threshold_multiplier"]
     fault_set, t_label = False, None
     rows, windows = [], []
     feats = bundle["feature_names"]
-    keep = [feats.index(n) for n in ("j1_e_dir_mean", "j2_e_dir_mean", "j1_tau_rms", "j2_tau_rms")]
+    keep = [feats.index(n) for n in window_feature_cols(feats)]
     n_ticks = int(round(DURATION / sim.T_c))
     i = 0
     for _ in range(n_ticks):
@@ -98,20 +106,19 @@ def main(argv=None):
     bundle = load_bundle(a.model)
     diag_bundle = load_diagnosis(a.model)
     out = {
-        "note": "Recorded with the project simulator and the trained Random Forest (OnlineDetector).",
+        "note": f"Recorded with the project simulator and the trained Random Forest ({Path(a.model).name}, OnlineDetector).",
         "model": {k: bundle[k] for k in ("window_s", "stride_s", "monitor_start_s", "threshold", "n_on", "n_off")},
         "importances": sorted(zip(bundle["feature_names"], map(float, bundle["model"].feature_importances_)),
                               key=lambda kv: -kv[1]),
         "row_cols": ["t", "x1", "y1", "x2", "y2", "xd", "yd", "tau1", "tau2", "e1", "e2", "m1", "m2", "label"],
-        "window_cols": ["t", "score", "alarm", "j1_e_dir_mean", "j2_e_dir_mean", "j1_tau_rms", "j2_tau_rms",
-                        "diag_joint", "diag_mult"],
+        "window_cols": ["t", "score", "alarm", *window_feature_cols(bundle["feature_names"]), "diag_joint", "diag_mult"],
         "scenarios": [],
     }
     for sc in SCENARIOS:
         r = run_scenario(cfg, bundle, diag_bundle, *sc)
-        last = next((w for w in reversed(r["windows"]) if w[7]), None)
+        last = next((w for w in reversed(r["windows"]) if w[-2]), None)
         print(f"{r['id']:11s} alarms_on={r['alarm_on']} false={len(r['false_alarms'])} delay={r['delay_s']} "
-              f"last diagnosis={'joint %d x%.2f' % (last[7], last[8]) if last else '-'}")
+              f"last diagnosis={'joint %d x%.2f' % (last[-2], last[-1]) if last else '-'}")
         out["scenarios"].append(r)
     path = Path(a.out)
     path.parent.mkdir(parents=True, exist_ok=True)
