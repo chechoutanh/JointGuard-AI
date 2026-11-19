@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>JointGuard AI</title>
-<meta name="description" content="A simulation study: detecting abnormal joint friction on a 2-joint robot arm with a Random Forest, without false alarms when the arm is simply loaded or fast.">
+<meta name="description" content="A simulation study: detecting abnormal joint friction on a 2-joint robot arm with a Random Forest and physics-residual features, without false alarms when the arm is simply loaded or fast.">
 <script>
 /* Apply the saved theme before first paint so there is no flash. */
 try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
@@ -263,7 +263,7 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
   <section class="hero">
     <span class="label">JointGuard AI · independent research project by Tuan Anh Nguyen · advised by Dr. Nguyen Vinh Hao and M.Sc. Phung Van Hung · simulation study</span>
     <h1>Can a robot arm notice that one of its joints is getting stiff?</h1>
-    <p class="lede">I simulated a two-joint robot arm from its equations of motion and trained a Random Forest that watches only joint torque and tracking error. It should raise an alarm when a joint's friction rises abnormally, and stay quiet when the arm is healthy but carries a heavier load or moves faster. Once the alarm is on, a second stage names the joint and estimates how much its friction has risen.</p>
+    <p class="lede">I simulated a two-joint robot arm from its equations of motion and trained a Random Forest that watches only joint torque and tracking error. It should raise an alarm when a joint's friction rises abnormally, and stay quiet when the arm is healthy but carries a heavier load or moves faster. Once the alarm is on, a second stage names the joint and estimates how much its friction has risen. The first model failed outside its training range; a <a href="#followup">follow-up</a> with features computed from the equations of motion cut false alarms on a fresh stress set from 4.7 to 0.08 per minute, with every fault still caught.</p>
     <span class="sim-note"><b>Note</b> All data is simulated. Nothing here has been validated on a physical robot.</span>
   </section>
 

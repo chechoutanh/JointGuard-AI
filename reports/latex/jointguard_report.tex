@@ -1,6 +1,7 @@
 % JointGuard AI - technical report.
 % Compile with pdfLaTeX (e.g. on Overleaf): upload this file together with the figures/ folder.
-% All numbers come from results/standard/*.json and models/standard/*.json (seed 20261024).
+% All numbers come from results/standard/*.json, models/standard/*.json (seed 20261024) and, for the follow-up
+% section, results/residual/summary.csv and docs/RESIDUAL_EXPERIMENT.md.
 \documentclass[11pt,a4paper]{article}
 \usepackage[margin=2.4cm]{geometry}
 \usepackage[T1]{fontenc}
@@ -27,7 +28,7 @@
 \title{\textbf{JointGuard AI}\\[4pt]
 \large Detecting and Diagnosing Abnormal Joint Friction in a Simulated Robot Arm}
 \author{Tuan Anh Nguyen}
-\date{October 2026}
+\date{November 2026}
 
 \begin{document}
 \maketitle
@@ -43,8 +44,11 @@ causal window features. Inside the range of conditions seen in training, the det
 runs with a median delay of 1.5\,s and 0.21 false alarms per minute, against 16 of 32 for an error-threshold
 baseline. A diagnosis stage named the correct joint in 30 of 32 detected runs, with a median error of 0.36 in the
 estimated friction multiplier. On a held-out stress test with heavier loads, faster motion and an unseen trajectory
-type, false alarms rose to 3.88 per minute, so the model does not generalise beyond its training range. All data is
-simulated and nothing has been validated on a physical robot.
+type, false alarms rose to 3.88 per minute, so the model does not generalise beyond its training range. A follow-up
+experiment replaced the features with physics residuals: the torque the nominal model cannot explain, split by a small
+least-squares fit into friction and payload error. On a new stress set generated after this method was frozen, false
+alarms fell from 4.74 to 0.08 per minute and all 40 faults were caught. All data is simulated and nothing has been
+validated on a physical robot.
 \end{abstract}
 
 \section{Motivation and research question}
@@ -289,6 +293,60 @@ error of 0.36 means, for example, reporting $+164\%$ when the truth is $+200\%$.
 healthy variation are below this resolution. On a false alarm the diagnosis still names a joint and a level, and both
 are wrong; the diagnosis is only as trustworthy as the alarm before it.
 
+\section{Follow-up: physics-residual features}
+\subsection{Method}
+The controller knows the nominal arm and the declared payload. Subtracting the torque this nominal model needs from the
+applied torque leaves what it cannot explain:
+\begin{equation}
+  r = \tau_{\text{applied}} - \bigl[M(q)\ddot q + C(q,\dot q)\dot q + G(q)\bigr]_{m_{\text{decl}}}
+    = \tau_f(\dot q) + \Delta m\, y(q,\dot q,\ddot q) + \text{noise},
+\end{equation}
+because the dynamics are linear in the payload mass, with $y = \hat\tau(m{=}1)-\hat\tau(m{=}0)$ (checked by a test).
+Friction depends on velocity and a payload error on pose and acceleration, so in every 1\,s window a least-squares fit
+with unknowns $[b_1,\tau_{c1},b_2,\tau_{c2},\Delta m]$ separates them; a weak Tikhonov prior pulls the estimate
+towards nominal when a joint barely moves. Five dimensionless features remain per window: a \emph{friction ratio} per
+joint (payload-corrected residual projected on the motion direction, divided by nominal friction, over samples where
+the joint moves; about 1 when healthy and about $m$ under a fault), the payload error $\Delta\hat m$, and the fraction
+of the window in which each joint moves. Acceleration comes from a smoothed difference of measured velocity,
+$\ddot q_i = (\dot q_{i+K} - \dot q_{i+1-K})/((2K-1)\Delta t)$ with $K=4$ chosen on training runs only; a window
+ending at sample $e$ uses samples up to $e-K$, so the features stay causal. Two detectors use them: a Random Forest
+trained and tuned exactly like the original one, and a physics-only rule, $\max_j$ friction ratio $\geq 1.3$, with its
+threshold chosen on validation.
+
+\subsection{A failed first version, and a fresh stress set}
+The first version used the \emph{target} acceleration and also exposed residual magnitudes. It was excellent inside
+the training range but raised even more false alarms on the stress set. The arm lags its target by a small delay
+$\delta$, so for a sinusoid of frequency $\omega$ the leftover inertial term is about $M\,\delta\,\omega^2\dot q$:
+proportional to velocity, like viscous friction, and growing with $\omega^2$. Fast healthy motion therefore still
+looked like friction. Measured acceleration and dimensionless features fixed this. Because the old stress set and a
+second new one (stress2) were seen while developing the method, a third set (stress3, 60 runs, new seed) was generated
+only after the method was frozen. It is the only truly held-out check.
+
+\subsection{Results}
+\begin{table}[h]
+\centering
+\caption{Detection on stress3, generated after the residual method was frozen (heavier payloads, faster motion,
+point-to-point trajectories).}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Detector & Detected & FA/min & Healthy w/ FA & Median delay [s] \\
+\midrule
+Random Forest, original 24 features & 24/40 & 4.74 & 20/20 & 1.1 \\
+Random Forest, 5 residual features  & 40/40 & 0.08 & 1/20  & 0.6 \\
+Physics rule only (no ML)           & 40/40 & 0.41 & 3/20  & 0.4 \\
+Error-threshold baseline            & 21/40 & 3.52 & 16/20 & 4.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On the test set the residual Random Forest also caught 32 of 32 faults with no false alarms. Every remaining false
+alarm on the fresh stress sets occurred on point-to-point trajectories, which never appear in training: while the arm
+stops and starts, friction is barely observable. The original model's most important feature,
+$\bar e_{\text{dir}}$, turns out to be a noisy proxy of the same quantity. On training data it correlates at 0.80
+with the friction ratio, but on stress3 39\% of healthy windows push it above its normal range, against 0.8\% for the
+friction ratio. Only detection was re-done; the diagnosis stage was not retrained on the new features.
+
 \section{Limitations}
 \begin{itemize}
   \item All data is simulated. The arm has rigid links and no motor, gearbox, backlash or temperature effects;
@@ -296,15 +354,16 @@ are wrong; the diagnosis is only as trustworthy as the alarm before it.
   \item Only one fault type, on one joint at a time. The diagnosis gives a joint and a friction level, not a cause.
   \item The controller knows the exact nominal arm parameters; only the declared payload is slightly wrong.
   \item Test scenarios have 4--8 runs each, and no confidence intervals were computed.
-  \item The models do not generalise to loads and speeds outside the training range.
+  \item The original models do not generalise to loads and speeds outside the training range. The residual detector
+        largely fixes this in simulation, but uses the same arm model as the simulator, which is never exact on a real
+        arm, and still raises occasional false alarms on point-to-point motion.
   \item This is anomaly detection and diagnosis, not prediction of remaining useful life.
 \end{itemize}
 
 \section{Next steps}
 \begin{itemize}
-  \item Add physics-informed features, such as the residual between measured torque and the torque predicted by the
-        nominal model, so that load and friction separate by construction; re-test on a fresh stress set, because the
-        current one has already been examined.
+  \item Add point-to-point motion to training, use the friction ratio for diagnosis, and test the residual detector
+        when the nominal model is deliberately wrong, as it always is on a real arm.
   \item Detect out-of-range operating conditions and report ``uncertain'' instead of raising an alarm.
   \item Model motors and gearboxes, and compare with data from a real arm.
   \item Use run-to-failure data to study gradual degradation, the evidence needed for wear estimation.
@@ -313,8 +372,9 @@ are wrong; the diagnosis is only as trustworthy as the alarm before it.
 
 \section{Reproducibility, materials and use of AI}
 Seed 20261024; Python 3.13, NumPy 2.5.4, pandas 3.1.0, scikit-learn 1.9.1. The full pipeline, including the diagnosis
-stage, runs with \texttt{python -m scripts.run\_pipeline -{}-mode standard}; 31 automated tests cover physics, data
-leakage, causality, online/offline consistency and the evaluation rules.
+stage, runs with \texttt{python -m scripts.run\_pipeline -{}-mode standard}, and the follow-up with
+\texttt{python -m scripts.residual\_experiment}; 37 automated tests cover physics, data leakage, causality,
+online/offline consistency, the residual fit and the evaluation rules.
 
 \begin{center}
 \begin{tabularx}{.92\linewidth}{lX}
@@ -322,6 +382,7 @@ leakage, causality, online/offline consistency and the evaluation rules.
 Source code & \url{https://github.com/chechoutanh/JointGuard-AI} \\
 Project web page & \url{https://jointguardaii.vercel.app/} \\
 Detailed results report & \href{https://github.com/chechoutanh/JointGuard-AI/blob/main/reports/standard/report_en.md}{\texttt{reports/standard/report\_en.md} on GitHub} \\
+Follow-up experiment & \href{https://github.com/chechoutanh/JointGuard-AI/blob/main/docs/RESIDUAL_EXPERIMENT.md}{\texttt{docs/RESIDUAL\_EXPERIMENT.md} on GitHub} \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -330,5 +391,9 @@ Detailed results report & \href{https://github.com/chechoutanh/JointGuard-AI/blo
 (Claude), following my research question and decisions. I formulated the problem and the fault definition, specified
 the simulation and evaluation design, ran the experiments and reviewed the results. Every number in this report is read
 from the project's result files.
+
+\section*{Acknowledgements}
+I thank Dr.\ Nguyen Vinh Hao (Ho Chi Minh City University of Technology) and M.Sc.\ Phung Van Hung (VNU-HCM High School
+for the Gifted) for advising this project.
 
 \end{document}
