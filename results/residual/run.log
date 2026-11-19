@@ -1,0 +1,49 @@
+physics rule: window=1.0 op={'threshold': 1.3, 'n_on': 1.0, 'f1': 0.9865125240847784, 'fa_per_min': 0.09840283084099476, 'detection_rate': 1.0, 'delay_median': 0.2249128777443623}
+{'feature_set': 'residual', 'part': 'test', 'detector': 'physics_rule', 'detected': '32/32', 'fa_per_healthy_min': 0.0, 'healthy_runs_with_fa': '0/16', 'delay_median_s': 0.16, 'window_f1': 0.986}
+{'feature_set': 'residual', 'part': 'stress', 'detector': 'physics_rule', 'detected': '40/40', 'fa_per_healthy_min': 0.242, 'healthy_runs_with_fa': '0/20', 'delay_median_s': 0.4, 'window_f1': 0.909}
+{'feature_set': 'residual', 'part': 'stress2', 'detector': 'physics_rule', 'detected': '40/40', 'fa_per_healthy_min': 1.162, 'healthy_runs_with_fa': '8/20', 'delay_median_s': 0.27, 'window_f1': 0.946}
+{'feature_set': 'residual', 'part': 'stress3', 'detector': 'physics_rule', 'detected': '40/40', 'fa_per_healthy_min': 0.409, 'healthy_runs_with_fa': '3/20', 'delay_median_s': 0.36, 'window_f1': 0.949}
+
+=== feature set: original (24 features) ===
+selected: {'window_s': 1.0, 'params': {'n_estimators': 200, 'max_depth': None, 'min_samples_leaf': 2, 'max_features': 'sqrt', 'class_weight': None}, 'val_ap': 0.9271239635936303}  op: thr=0.4 n_on=8
+{'feature_set': 'original', 'part': 'test', 'detector': 'rf', 'detected': '32/32', 'fa_per_healthy_min': 0.207, 'healthy_runs_with_fa': '0/16', 'delay_median_s': 1.48, 'window_f1': 0.817}
+{'feature_set': 'original', 'part': 'stress', 'detector': 'rf', 'detected': '26/40', 'fa_per_healthy_min': 3.875, 'healthy_runs_with_fa': '15/20', 'delay_median_s': 1.82, 'window_f1': 0.572}
+{'feature_set': 'original', 'part': 'stress2', 'detector': 'rf', 'detected': '12/40', 'fa_per_healthy_min': 5.646, 'healthy_runs_with_fa': '20/20', 'delay_median_s': 2.41, 'window_f1': 0.708}
+{'feature_set': 'original', 'part': 'stress3', 'detector': 'rf', 'detected': '24/40', 'fa_per_healthy_min': 4.743, 'healthy_runs_with_fa': '20/20', 'delay_median_s': 1.08, 'window_f1': 0.608}
+
+=== feature set: residual (5 features) ===
+selected: {'window_s': 1.0, 'params': {'n_estimators': 200, 'max_depth': 14, 'min_samples_leaf': 8, 'max_features': 'sqrt', 'class_weight': None}, 'val_ap': 0.999842490768602}  op: thr=0.3 n_on=1
+{'feature_set': 'residual', 'part': 'test', 'detector': 'rf', 'detected': '32/32', 'fa_per_healthy_min': 0.0, 'healthy_runs_with_fa': '0/16', 'delay_median_s': 0.3, 'window_f1': 0.987}
+{'feature_set': 'residual', 'part': 'stress', 'detector': 'rf', 'detected': '40/40', 'fa_per_healthy_min': 0.081, 'healthy_runs_with_fa': '0/20', 'delay_median_s': 0.63, 'window_f1': 0.907}
+{'feature_set': 'residual', 'part': 'stress2', 'detector': 'rf', 'detected': '40/40', 'fa_per_healthy_min': 0.415, 'healthy_runs_with_fa': '5/20', 'delay_median_s': 0.35, 'window_f1': 0.948}
+{'feature_set': 'residual', 'part': 'stress3', 'detector': 'rf', 'detected': '40/40', 'fa_per_healthy_min': 0.082, 'healthy_runs_with_fa': '1/20', 'delay_median_s': 0.64, 'window_f1': 0.946}
+
+=== feature set: both (29 features) ===
+selected: {'window_s': 1.0, 'params': {'n_estimators': 200, 'max_depth': None, 'min_samples_leaf': 2, 'max_features': 0.5, 'class_weight': 'balanced'}, 'val_ap': 0.9997307819069514}  op: thr=0.3 n_on=1
+{'feature_set': 'both', 'part': 'test', 'detector': 'rf', 'detected': '31/32', 'fa_per_healthy_min': 0.104, 'healthy_runs_with_fa': '0/16', 'delay_median_s': 0.29, 'window_f1': 0.987}
+{'feature_set': 'both', 'part': 'stress', 'detector': 'rf', 'detected': '40/40', 'fa_per_healthy_min': 0.0, 'healthy_runs_with_fa': '0/20', 'delay_median_s': 0.64, 'window_f1': 0.918}
+{'feature_set': 'both', 'part': 'stress2', 'detector': 'rf', 'detected': '40/40', 'fa_per_healthy_min': 0.498, 'healthy_runs_with_fa': '5/20', 'delay_median_s': 0.4, 'window_f1': 0.941}
+{'feature_set': 'both', 'part': 'stress3', 'detector': 'rf', 'detected': '40/40', 'fa_per_healthy_min': 0.082, 'healthy_runs_with_fa': '1/20', 'delay_median_s': 0.68, 'window_f1': 0.943}
+
+feature_set    part     detector detected  fa_per_healthy_min healthy_runs_with_fa  delay_median_s  window_f1
+   residual    test physics_rule    32/32               0.000                 0/16            0.16      0.986
+   residual  stress physics_rule    40/40               0.242                 0/20            0.40      0.909
+   residual stress2 physics_rule    40/40               1.162                 8/20            0.27      0.946
+   residual stress3 physics_rule    40/40               0.409                 3/20            0.36      0.949
+   original    test           rf    32/32               0.207                 0/16            1.48      0.817
+          -    test     baseline    16/32               0.311                 0/16            2.71      0.434
+   original  stress           rf    26/40               3.875                15/20            1.82      0.572
+          -  stress     baseline    17/40               2.826                14/20            3.46      0.394
+   original stress2           rf    12/40               5.646                20/20            2.41      0.708
+          - stress2     baseline    11/40               3.570                 9/20            5.13      0.669
+   original stress3           rf    24/40               4.743                20/20            1.08      0.608
+          - stress3     baseline    21/40               3.516                16/20            4.03      0.473
+   residual    test           rf    32/32               0.000                 0/16            0.30      0.987
+   residual  stress           rf    40/40               0.081                 0/20            0.63      0.907
+   residual stress2           rf    40/40               0.415                 5/20            0.35      0.948
+   residual stress3           rf    40/40               0.082                 1/20            0.64      0.946
+       both    test           rf    31/32               0.104                 0/16            0.29      0.987
+       both  stress           rf    40/40               0.000                 0/20            0.64      0.918
+       both stress2           rf    40/40               0.498                 5/20            0.40      0.941
+       both stress3           rf    40/40               0.082                 1/20            0.68      0.943
+saved C:\Users\Administrator\robot_friction_detection\results\residual

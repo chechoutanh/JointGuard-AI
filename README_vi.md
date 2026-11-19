@@ -11,6 +11,7 @@ Phát hiện bất thường ma sát khớp trên robot phẳng 2 bậc tự do 
   bản LaTeX ngắn gọn: [`reports/latex/jointguard_report.tex`](reports/latex/jointguard_report.tex)
 - Giải thích từng giai đoạn để tự học và tự trình bày: [`docs/HUONG_DAN_HOC.md`](docs/HUONG_DAN_HOC.md)
 - Kịch bản quay video demo: [`docs/VIDEO_SCRIPT.md`](docs/VIDEO_SCRIPT.md)
+- Thí nghiệm tiếp theo, đặc trưng phần dư vật lý (residual): [`docs/RESIDUAL_EXPERIMENT.md`](docs/RESIDUAL_EXPERIMENT.md). Trên một bộ stress mới tạo sau khi đã chốt phương pháp, báo nhầm giảm từ 4,7 xuống 0,08 lần/phút khỏe và phát hiện 40/40 lỗi.
 - Nhật ký tiến độ và các lệnh đã chạy: [`PROGRESS.md`](PROGRESS.md)
 
 ## Cấu trúc
@@ -94,7 +95,7 @@ Mọi lệnh chạy từ thư mục gốc dự án, khi venv đang bật. Lệnh
 | Xuất dữ liệu cho trang web | `python -m scripts.export_web_demo --model models/standard --out web/demo_runs.json` |
 | Biểu đồ | `python -m scripts.make_figures --results results/standard` |
 | Báo cáo MD + Word | `python -m scripts.make_report --results results/standard --model models/standard --out reports/standard` |
-| Mở demo | `python -m scripts.run_demo --model models/standard` |
+| Mở demo | `python -m scripts.run_demo` (detector residual; thêm `--model models/standard` để xem bản gốc) |
 | Demo tự động không cửa sổ (chụp ảnh) | `python -m scripts.demo_headless_check --model models/standard` |
 
 **Không ghi đè âm thầm.** Nếu thư mục đích đã có kết quả, script sẽ dừng và báo lỗi. Hãy dùng tên mới
@@ -122,7 +123,7 @@ Có hai cách để có lại tín hiệu thô:
 - tự sinh lại: `python -m scripts.generate_dataset --mode standard --name standard_regen`, rồi so sánh với manifest gốc
   (cùng seed và cùng phiên bản thư viện sẽ cho cùng tín hiệu).
 
-Demo (`run_demo`) chỉ cần `models/standard`, không cần dữ liệu thô.
+Demo (`run_demo`) chỉ cần `models/residual_residual` (mặc định) hoặc `models/standard`, không cần dữ liệu thô.
 
 ## Giao diện demo
 

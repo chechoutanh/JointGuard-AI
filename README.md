@@ -79,6 +79,13 @@ All numbers come from `results/standard/` and were produced by the code in this 
 
 - Inside the training range, the detector catches every fault and clearly beats a detector that only looks at error size.
 - **Outside the training range, it fails.** It mistakes heavier loads and faster motion for friction. This negative result is reported, not tuned away.
+- **Follow-up: physics-residual features fix most of this.** Features computed from the equation of motion separate load and speed from friction. On a stress set generated after that method was frozen, false alarms fall from 4.7 to 0.08 per healthy minute and all 40 faults are caught. The remaining false alarms all occur on point-to-point motion. A first version failed and is reported too. Details: [`docs/RESIDUAL_EXPERIMENT.md`](docs/RESIDUAL_EXPERIMENT.md).
+
+| Fresh stress set (`stress3`) | Faulty runs detected | False alarms / healthy min | Healthy runs with a false alarm |
+|---|---|---|---|
+| Random Forest, original features | 24 / 40 | 4.74 | 20 / 20 |
+| Random Forest, physics-residual features | **40 / 40** | **0.08** | **1 / 20** |
+| Physics rule only (no ML) | 40 / 40 | 0.41 | 3 / 20 |
 - The friction estimate is rough. Estimates are pulled toward the middle of the training range, so it separates moderate from severe faults but does not measure friction precisely.
 - On a false alarm, the diagnosis is also wrong.
 
@@ -172,7 +179,7 @@ Features are strictly causal. Time, run IDs, true payload, friction values and l
 - One fault type (friction), on one joint at a time.
 - The controller knows the exact nominal parameters of the arm.
 - Each test scenario has 4–8 runs, and no confidence intervals are computed.
-- The models do not generalise to loads and speeds outside the training range.
+- The original models do not generalise to loads and speeds outside the training range. The residual features largely fix this in simulation, but only for detection, and still fail sometimes on point-to-point motion (see [`docs/RESIDUAL_EXPERIMENT.md`](docs/RESIDUAL_EXPERIMENT.md)).
 - The diagnosis gives a joint and a friction level, not a cause. Its estimate is compressed toward the middle of the range.
 
 ---
@@ -285,7 +292,7 @@ python -m scripts.evaluate --data data/standard_v2 --model models/standard_v2 --
 
 ## Desktop demo
 
-`python -m scripts.run_demo --model models/standard` opens a real-time Pygame window.
+`python -m scripts.run_demo` opens a real-time Pygame window with the physics-residual detector (`models/residual_residual`, see [`docs/RESIDUAL_EXPERIMENT.md`](docs/RESIDUAL_EXPERIMENT.md)). While its alarm is on, it shows the faulty joint and the estimated friction multiplier straight from the friction ratio, marked "physics". Add `--model models/standard` for the original detector, to compare: at fast speed it raises false alarms on a healthy arm.
 
 - **Left:** the arm, its target path (dotted) and its actual path.
 - **Right:** joint torque, tracking error and the model score with its threshold.
@@ -343,7 +350,7 @@ Retraining or re-evaluating needs those regenerated files. The demo, the web pag
 
 ## Next steps
 
-- Add physics-informed features, such as the residual between measured torque and the torque predicted by the nominal model, so that load and friction separate by construction. Then re-test on a fresh stress set.
+- ~~Add physics-residual features and re-test on a fresh stress set.~~ Done for detection, see [`docs/RESIDUAL_EXPERIMENT.md`](docs/RESIDUAL_EXPERIMENT.md). Next: retrain the diagnosis stage on them, add point-to-point motion to training, and wire the residual detector into the demos.
 - Detect out-of-range operating conditions and report "uncertain" instead of raising an alarm.
 - Model motors and gearboxes, and compare with data from a real arm.
 - Use run-to-failure data to study gradual degradation, the evidence needed for wear estimation.

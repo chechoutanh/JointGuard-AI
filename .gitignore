@@ -16,3 +16,8 @@ data/*/features/
 models/standard`/
 data/standard_regen`/
 data/standard_v2/
+
+# Residual-experiment models: regenerate with `python -m scripts.residual_experiment`
+models/residual_*/
+# ...except the small residual model (1.7 MB) that the desktop demo uses
+!models/residual_residual/

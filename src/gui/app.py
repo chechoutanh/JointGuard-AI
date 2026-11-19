@@ -55,7 +55,7 @@ class DemoApp:
         self.reset_count = 0
         pygame.init()
         self.screen = pygame.display.set_mode((W, H))
-        pygame.display.set_caption("2-DOF robot - joint friction anomaly detection (simulation)")
+        pygame.display.set_caption(f"2-DOF robot - joint friction anomaly detection (simulation) - model: {Path(model_dir).name}")
         self.font = pygame.font.SysFont("dejavusans,arial", 15)
         self.font_b = pygame.font.SysFont("dejavusans,arial", 18, bold=True)
         self.font_big = pygame.font.SysFont("dejavusans,arial", 26, bold=True)
@@ -73,7 +73,7 @@ class DemoApp:
         self.sim = Simulator(cfg, payload, payload, fr["nominal_b"], fr["nominal_tau_c"], self.traj,
                              FaultSchedule(), 0.0005, 0.005, noise_seed=self.seed + self.reset_count)
         self.reset_count += 1
-        self.detector = OnlineDetector(self.bundle, self.diag_bundle) if self.bundle else None
+        self.detector = OnlineDetector(self.bundle, self.diag_bundle, payload, cfg) if self.bundle else None
         self.mode_name = "healthy"
         self.hist = deque(maxlen=1000)      # (t, tau1, tau2, e1, e2) at 100 Hz, 10 s
         self.score_hist = deque(maxlen=100)  # (t, score, alarm) at 10 Hz
@@ -278,9 +278,10 @@ class DemoApp:
             self.text(f"alarm events this run: {self.n_alarm_events}", (box.x + 12, box.y + 150))
             dg = self.det.get("diagnosis")
             if dg:
-                self.text(f"Joint {dg['joint']} - friction increase: {dg['increase_pct']:.0f}%  (x{dg['mult']:.1f})",
+                src = ", physics" if dg.get("source") == "physics" else ""
+                self.text(f"Joint {dg['joint']} - friction increase: {dg['increase_pct']:.0f}%  (x{dg['mult']:.1f}{src})",
                           (box.x + 12, box.y + 176), BAD)
-            elif self.diag_bundle is None:
+            elif self.diag_bundle is None and not self.detector.physics_diag:
                 self.text("diagnosis: not trained", (box.x + 12, box.y + 176), DIM)
         # ground truth
         gt = pygame.Rect(960, 540, 310, 210)

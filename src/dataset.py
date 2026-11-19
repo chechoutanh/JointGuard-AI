@@ -55,12 +55,13 @@ def simulate_spec(args):
     return spec, sig, truth, info
 
 
-def generate_dataset(name, mode, cfg=None, overwrite=False, processes=None, data_root=None):
+def generate_dataset(name, mode, cfg=None, overwrite=False, processes=None, data_root=None,
+                     subsets=("indomain", "stress")):
     cfg = cfg or load_config()
     out = ensure_new_dir(Path(data_root or Path(__file__).resolve().parents[1] / "data") / name, overwrite)
     (out / "signals").mkdir()
     (out / "truth").mkdir()
-    specs = sample_run_specs(cfg, mode, "indomain") + sample_run_specs(cfg, mode, "stress")
+    specs = [s for sub in subsets for s in sample_run_specs(cfg, mode, sub)]
     rows, failed = [], []
     t0 = time.time()
     with Pool(processes) as pool:

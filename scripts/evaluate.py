@@ -13,7 +13,6 @@ import pandas as pd
 
 from src.config import ensure_new_dir, PROJECT_ROOT
 from src.dataset import load_manifest
-from src.features import FEATURE_NAMES
 from src.training import attach_split, baseline_scores, evaluate_detector, load_feature_table, rf_scores
 
 
@@ -36,7 +35,7 @@ def main(argv=None):
                "baseline": baseline}
     for part in ("val", "test", "stress"):
         metrics[part] = {}
-        for name, feat, scorer, p in (("rf", feat_rf, lambda d: rf_scores(bundle["model"], d), bundle),
+        for name, feat, scorer, p in (("rf", feat_rf, lambda d: rf_scores(bundle["model"], d, bundle["feature_names"]), bundle),
                                       ("baseline", feat_bl, lambda d: baseline_scores(baseline, d), baseline)):
             d = feat[feat["split"] == part].reset_index(drop=True)
             if not len(d):
@@ -53,7 +52,7 @@ def main(argv=None):
                   f"delay_med={s['delay_median']:.2f}s")
     metrics["note"] = ("'val' is shown only for reference (used for selection); 'test' and 'stress' "
                        "were not used for any training or tuning decision.")
-    imp = pd.DataFrame({"feature": FEATURE_NAMES, "importance": bundle["model"].feature_importances_})
+    imp = pd.DataFrame({"feature": bundle["feature_names"], "importance": bundle["model"].feature_importances_})
     imp.sort_values("importance", ascending=False).to_csv(out / "feature_importance.csv", index=False)
     with open(out / "metrics.json", "w") as f:
         json.dump(metrics, f, indent=2, default=float)

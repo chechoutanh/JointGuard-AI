@@ -14,6 +14,7 @@ Baseline (tracking error threshold):
 import itertools
 import json
 import platform
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -29,15 +30,20 @@ META_COLUMNS = ["run_id", "t_end", "label", "mixed"]
 
 
 def load_feature_table(data_dir, window_s):
-    return pd.read_csv(f"{data_dir}/features/w{window_s:g}.csv.gz")
+    feat = pd.read_csv(f"{data_dir}/features/w{window_s:g}.csv.gz")
+    res = Path(f"{data_dir}/features/res_w{window_s:g}.csv.gz")
+    if res.exists():  # physics-residual features (scripts.build_residual_features), same window grid
+        feat = feat.merge(pd.read_csv(res).drop(columns=["label", "mixed"]), on=["run_id", "t_end"],
+                          how="left", validate="one_to_one")
+    return feat
 
 
 def attach_split(feat, split):
     return feat.merge(split[["run_id", "split"]], on="run_id", how="left")
 
 
-def rf_scores(model, df):
-    return model.predict_proba(df[FEATURE_NAMES].to_numpy())[:, 1]
+def rf_scores(model, df, feature_names=FEATURE_NAMES):
+    return model.predict_proba(df[list(feature_names)].to_numpy())[:, 1]
 
 
 def baseline_scores(params, df):
@@ -82,7 +88,8 @@ def select_operating_point(df, scores, grid_thr, grid_non, n_off, manifest, stri
     return best.to_dict(), tab
 
 
-def train_all(data_dir, split, manifest, cfg, log=print):
+def train_all(data_dir, split, manifest, cfg, log=print, feature_names=FEATURE_NAMES):
+    feature_names = list(feature_names)
     tcfg, fcfg = cfg["training"], cfg["features"]
     stride_s = fcfg["stride_s"]
     seed = cfg["seed"]
@@ -98,8 +105,8 @@ def train_all(data_dir, split, manifest, cfg, log=print):
         for values in itertools.product(*[tcfg["rf_grid"][k] for k in keys]):
             params = dict(zip(keys, values))
             rf = RandomForestClassifier(random_state=seed, n_jobs=-1, **params)
-            rf.fit(tr[FEATURE_NAMES].to_numpy(), tr["label"].to_numpy())
-            ap = average_precision_score(va["label"], rf_scores(rf, va))
+            rf.fit(tr[feature_names].to_numpy(), tr["label"].to_numpy())
+            ap = average_precision_score(va["label"], rf_scores(rf, va, feature_names))
             selection.append({"window_s": window_s, **{k: str(v) for k, v in params.items()}, "val_ap": ap})
             log(f"  RF w={window_s}s {params} -> val AP={ap:.4f}")
             if best is None or ap > best["val_ap"]:
@@ -109,7 +116,7 @@ def train_all(data_dir, split, manifest, cfg, log=print):
     # --- RF operating point on validation (all val windows, transitions kept) ---
     feat = tables[best["window_s"]]
     val_all = feat[feat["split"] == "val"]
-    op_rf, op_tab_rf = select_operating_point(val_all, rf_scores(best["model"], val_all),
+    op_rf, op_tab_rf = select_operating_point(val_all, rf_scores(best["model"], val_all, feature_names),
                                               tcfg["threshold_grid"], tcfg["n_on_grid"], tcfg["n_off"],
                                               manifest, stride_s, tcfg["max_false_alarms_per_min"])
     log(f"RF operating point: {op_rf}")
@@ -135,7 +142,7 @@ def train_all(data_dir, split, manifest, cfg, log=print):
     versions = {"python": platform.python_version(), "numpy": np.__version__,
                 "pandas": pd.__version__, "scikit-learn": sklearn.__version__}
     bundle = {
-        "model": best["model"], "feature_names": list(FEATURE_NAMES),
+        "model": best["model"], "feature_names": feature_names,
         "window_s": best["window_s"], "stride_s": stride_s,
         "monitor_start_s": fcfg["monitor_start_s"], "f_sample": cfg["timing"]["f_sample"],
         "threshold": float(op_rf["threshold"]), "n_on": int(op_rf["n_on"]), "n_off": int(tcfg["n_off"]),

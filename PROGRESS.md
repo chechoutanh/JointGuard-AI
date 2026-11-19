@@ -40,3 +40,14 @@ câu chữ trong báo cáo, và việc đặt `n_jobs=1` khi suy luận online (
 - (Thí nghiệm mới, cần dùng một bộ stress mới vì bộ hiện tại đã được xem) Thêm đặc trưng tải khai báo hoặc phần dư mô hình,
   mở rộng lưới `n_on_grid`, rồi so sánh.
 - Bootstrap theo nhóm để có khoảng tin cậy; GroupKFold trong tập phát triển.
+
+## 2026-11-20: thí nghiệm đặc trưng phần dư vật lý
+Chi tiết, thứ tự đã xem dữ liệu và kết quả: `docs/RESIDUAL_EXPERIMENT.md`. Kết quả `results/standard/` giữ nguyên.
+```
+python -m scripts.generate_dataset --mode standard --name stress2 --subsets stress --seed 20261120
+python -m scripts.build_residual_features --data data/standard
+python -m scripts.residual_experiment ...   # bản v1 thất bại trên stress, đã chẩn đoán trên stress cũ
+python -m scripts.generate_dataset --mode standard --name stress3 --subsets stress --seed 20261121   # sau khi chốt v2
+python -m scripts.residual_experiment --overwrite   # log: results/residual/run.log
+python -m pytest -q                                  # 35 passed
+```
