@@ -88,6 +88,12 @@ All numbers come from `results/standard/` and were produced by the code in this 
 | Physics rule only (no ML) | 40 / 40 | 0.41 | 3 / 20 |
 - The friction estimate is rough. Estimates are pulled toward the middle of the training range, so it separates moderate from severe faults but does not measure friction precisely.
 - On a false alarm, the diagnosis is also wrong.
+- **Generalisation check: a 7-joint KUKA LBR iiwa.** The physics-residual rule was extended from 2 to 7 joints. Nothing was re-tuned except the alarm threshold, which was chosen on validation. On a simulated iiwa with full 3-D dynamics it catches every fault on every joint, including on a held-out set with heavier loads and faster, unseen motion. False alarms rise to 0.85 per healthy minute, mostly on point-to-point motion and on the heavily loaded joints 2 and 4. Detection only. Details: [`docs/KUKA_EXPERIMENT.md`](docs/KUKA_EXPERIMENT.md).
+
+| KUKA iiwa, held-out stress set | Faulty runs detected | False alarms / healthy min | Healthy runs with a false alarm |
+|---|---|---|---|
+| Physics rule (2-DOF method, 7 joints) | **42 / 42** | **0.85** | 6 / 20 |
+| Tracking-error baseline | 17 / 42 | 3.55 | 10 / 20 |
 
 ---
 
@@ -169,7 +175,7 @@ Features are strictly causal. Time, run IDs, true payload, friction values and l
   - An alarm is one off-to-on transition. A false alarm is one that starts before the fault.
   - Delay is measured from the moment the label switches.
   - An alarm that was already on before the fault never counts as a detection.
-- **31 automated tests** (`tests/`) cover the physics, data leakage, causality, identical online and offline features, the evaluation rules and the diagnosis tracker.
+- **41 automated tests** (`tests/`) cover the physics, data leakage, causality, identical online and offline features, the evaluation rules and the diagnosis tracker.
 
 ---
 
@@ -181,6 +187,7 @@ Features are strictly causal. Time, run IDs, true payload, friction values and l
 - Each test scenario has 4–8 runs, and no confidence intervals are computed.
 - The original models do not generalise to loads and speeds outside the training range. The residual features largely fix this in simulation, but only for detection, and still fail sometimes on point-to-point motion (see [`docs/RESIDUAL_EXPERIMENT.md`](docs/RESIDUAL_EXPERIMENT.md)).
 - The diagnosis gives a joint and a friction level, not a cause. Its estimate is compressed toward the middle of the range.
+- The KUKA iiwa check uses approximate URDF inertias, not KUKA's identified parameters. It still assumes the same model in the plant and the detector, and covers detection only ([`docs/KUKA_EXPERIMENT.md`](docs/KUKA_EXPERIMENT.md)).
 
 ---
 
@@ -188,6 +195,7 @@ Features are strictly causal. Time, run IDs, true payload, friction values and l
 
 ```
 configs/default.json        every parameter (robot, friction, controller, scenarios, training), SI units
+configs/kuka.json           parameters of the 7-DOF KUKA iiwa experiment (src/kuka.py, docs/KUKA_EXPERIMENT.md)
 src/
   config.py                 config loading; refuses to overwrite earlier results
   dynamics.py               kinematics, M(q), C(q,q̇)q̇, G(q), friction, forward dynamics
@@ -204,6 +212,8 @@ src/
   evaluation.py             window- and event-level metrics
   diagnosis.py              joint classifier, friction regressor, online diagnosis tracker
   online.py                 streaming detector used by the demo
+  residual.py               physics-residual features (n joints)
+  kuka.py                   7-DOF KUKA iiwa: pybullet dynamics, closed loop, scenarios, residual features
   gui/app.py                Pygame desktop demo
   plots.py                  figures
   report.py, report_en.py   auto-generated reports (Vietnamese / English)
@@ -352,6 +362,7 @@ Retraining or re-evaluating needs those regenerated files. The demo, the web pag
 
 - ~~Add physics-residual features and re-test on a fresh stress set.~~ Done for detection, see [`docs/RESIDUAL_EXPERIMENT.md`](docs/RESIDUAL_EXPERIMENT.md). Next: retrain the diagnosis stage on them, add point-to-point motion to training, and wire the residual detector into the demos.
 - Detect out-of-range operating conditions and report "uncertain" instead of raising an alarm.
+- ~~Check that the method carries over to a 7-joint arm.~~ Done in simulation for detection on a KUKA iiwa, see [`docs/KUKA_EXPERIMENT.md`](docs/KUKA_EXPERIMENT.md). Next: reduce false alarms on point-to-point motion and on heavily loaded joints, then test on a fresh stress set.
 - Model motors and gearboxes, and compare with data from a real arm.
 - Use run-to-failure data to study gradual degradation, the evidence needed for wear estimation.
 - Add group-wise bootstrap confidence intervals and cross-validation.

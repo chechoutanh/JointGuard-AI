@@ -1,0 +1,71 @@
+{
+  "_comment": "KUKA LBR iiwa (7-DOF) generalisation experiment, see docs/KUKA_EXPERIMENT.md. Link masses, centres of mass and inertias come from pybullet_data/kuka_iiwa/model.urdf (approximate values, not KUKA's identified parameters). Armature, friction and gains are chosen here. Units SI.",
+  "robot": {
+    "urdf": "kuka_iiwa/model.urdf",
+    "n_joints": 7,
+    "g": 9.81,
+    "armature": [1.0, 1.0, 0.6, 0.6, 0.3, 0.2, 0.2],
+    "joint_limits": [[-2.96, 2.96], [-2.09, 2.09], [-2.96, 2.96], [-2.09, 2.09], [-2.96, 2.96], [-2.09, 2.09], [-3.05, 3.05]],
+    "torque_limits": [176.0, 176.0, 110.0, 110.0, 110.0, 40.0, 40.0],
+    "max_abs_velocity": 10.0
+  },
+  "friction": {
+    "nominal_b": [1.5, 1.5, 1.0, 1.0, 0.6, 0.4, 0.4],
+    "nominal_tau_c": [2.5, 2.5, 1.5, 1.5, 0.8, 0.5, 0.5],
+    "epsilon": 0.02,
+    "healthy_tolerance": 0.15
+  },
+  "controller": {
+    "kp": [600.0, 2500.0, 400.0, 700.0, 200.0, 130.0, 130.0],
+    "kd": [40.0, 80.0, 25.0, 40.0, 12.0, 8.0, 8.0],
+    "payload_declared_error": 0.10
+  },
+  "timing": {"dt_physics": 0.001, "f_control": 100, "f_sample": 100},
+  "sensor": {"noise_q_range": [0.0002, 0.0010], "noise_qd_range": [0.002, 0.010]},
+  "trajectory": {"t_ramp": 2.0, "initial_offset_max": 0.02, "joint_margin": 0.05},
+  "fault": {
+    "label_threshold_multiplier": 1.5,
+    "mild_range": [1.6, 2.2],
+    "severe_range": [2.8, 4.0],
+    "gradual_final_range": [2.2, 4.0],
+    "gradual_ramp_range": [6.0, 12.0]
+  },
+  "domains": {
+    "indomain": {
+      "center": [[-0.5, 0.5], [0.3, 0.9], [-0.5, 0.5], [-1.6, -0.9], [-0.5, 0.5], [0.4, 1.0], [-0.5, 0.5]],
+      "amp": [0.15, 0.45],
+      "freq": [0.15, 0.55],
+      "payload_nominal": [0.5, 1.5],
+      "payload_full": [0.0, 3.0],
+      "freq_low_speed_group": [0.15, 0.35]
+    },
+    "stress": {
+      "_comment": "Held out: faster, heavier, half point-to-point. Never used to pick anything.",
+      "center": [[-0.5, 0.5], [0.3, 0.9], [-0.5, 0.5], [-1.6, -0.9], [-0.5, 0.5], [0.4, 1.0], [-0.5, 0.5]],
+      "amp": [0.2, 0.45],
+      "freq": [0.55, 0.75],
+      "payload_full": [3.0, 5.0],
+      "p2p_move_time": [0.8, 2.0],
+      "p2p_dwell": [0.3, 1.0],
+      "p2p_fraction": 0.5
+    }
+  },
+  "run": {
+    "duration": 25.0,
+    "onset_range": [6.0, 16.0],
+    "gradual_onset_range": [4.0, 9.0],
+    "replicates_per_group": 2,
+    "indomain_counts": {"healthy_speed": 20, "healthy_load": 20, "mild": 28, "severe": 28, "gradual": 28},
+    "stress_counts": {"healthy_speed": 10, "healthy_load": 10, "mild": 14, "severe": 14, "gradual": 14}
+  },
+  "features": {"window_s_options": [0.5, 1.0], "stride_s": 0.1, "monitor_start_s": 2.0},
+  "training": {
+    "rule_threshold_grid": [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5],
+    "n_on_grid": [1, 3, 5, 8],
+    "n_off": 5,
+    "max_false_alarms_per_min": 0.5,
+    "baseline_scale_grid": [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.4, 2.8, 3.4, 4.0],
+    "baseline_quantile": 0.95
+  },
+  "seed": 20261128
+}
