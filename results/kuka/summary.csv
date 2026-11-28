@@ -1,0 +1,7 @@
+part,detector,detected,fa_per_healthy_min,healthy_runs_with_fa,delay_median_s,window_f1
+val,physics_rule,42/42,0.077,0/20,0.39,0.983
+val,error_baseline,25/42,0.387,0/20,1.8,0.497
+test,physics_rule,42/42,0.483,5/20,0.46,0.98
+test,error_baseline,20/42,0.965,0/20,1.26,0.508
+stress,physics_rule,42/42,0.849,6/20,0.58,0.937
+stress,error_baseline,17/42,3.552,10/20,4.17,0.558

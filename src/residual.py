@@ -50,6 +50,17 @@ def _torque(model: ArmModel, q1, q2, qd1, qd2, qdd1, qdd2):
     return t1, t2
 
 
+def smoothed_acceleration(qd, dt):
+    """qd: (n_joints, n) measured velocities -> (n_joints, n) acceleration, NaN where the
+    stencil qdd[i] = (qd[i+K] - qd[i+1-K]) / ((2K-1) dt) does not fit."""
+    K = ACC_HALF_WIDTH
+    a = np.full(qd.shape, np.nan)
+    n = qd.shape[1]
+    if n >= 2 * K:
+        a[:, K - 1:n - K] = (qd[:, 2 * K - 1:] - qd[:, :n - 2 * K + 1]) / ((2 * K - 1) * dt)
+    return a
+
+
 def run_residual_signals(signals: pd.DataFrame, payload_declared, params: RobotParams, f_sample):
     """Per-sample residual torque r (2, n), payload sensitivity y (2, n) and measured qd (2, n).
 
@@ -64,12 +75,7 @@ def run_residual_signals(signals: pd.DataFrame, payload_declared, params: RobotP
     K = ACC_HALF_WIDTH
     q1, q2 = signals["q1_meas"].to_numpy(), signals["q2_meas"].to_numpy()
     qd1, qd2 = signals["qd1_meas"].to_numpy(), signals["qd2_meas"].to_numpy()
-    qdd = []
-    for v in (qd1, qd2):
-        a = np.full(len(v), np.nan)
-        if len(v) >= 2 * K:
-            a[K - 1:len(v) - K] = (v[2 * K - 1:] - v[:len(v) - 2 * K + 1]) / ((2 * K - 1) * dt)
-        qdd.append(a)
+    qdd = smoothed_acceleration(np.vstack([qd1, qd2]), dt)
     m_decl, m0, m1 = ArmModel(params, payload_declared), ArmModel(params, 0.0), ArmModel(params, 1.0)
     th = _torque(m_decl, q1, q2, qd1, qd2, *qdd)
     t0 = _torque(m0, q1, q2, qd1, qd2, *qdd)
@@ -80,14 +86,17 @@ def run_residual_signals(signals: pd.DataFrame, payload_declared, params: RobotP
 
 
 def window_residual_features(r, y, qd, eps, b_nom, tc_nom):
-    """r, y, qd: (2, window_n) arrays for one window. Returns RESIDUAL_FEATURE_NAMES values."""
-    n = r.shape[1]
-    z = np.zeros(n)
-    s1, s2 = np.tanh(qd[0] / eps), np.tanh(qd[1] / eps)
-    A = np.vstack([np.column_stack([qd[0], s1, z, z, y[0]]),
-                   np.column_stack([z, z, qd[1], s2, y[1]])])
-    rhs = np.concatenate([r[0], r[1]])
-    theta0 = np.array([b_nom[0], tc_nom[0], b_nom[1], tc_nom[1], 0.0])
+    """r, y, qd: (n_joints, window_n) arrays for one window. Returns
+    [fric_ratio_1..n, dm_hat, moving_frac_1..n] (RESIDUAL_FEATURE_NAMES for the 2-DOF arm).
+    Unknowns theta = [b1, tc1, ..., bn, tcn, dm]; joint j only sees its own (b_j, tc_j) and dm."""
+    nj, n = r.shape
+    s = np.tanh(qd / eps)
+    A = np.zeros((nj * n, 2 * nj + 1))
+    for j in range(nj):
+        rows = slice(j * n, (j + 1) * n)
+        A[rows, 2 * j], A[rows, 2 * j + 1], A[rows, -1] = qd[j], s[j], y[j]
+    rhs = r.reshape(-1)
+    theta0 = np.append(np.column_stack([b_nom, tc_nom]).reshape(-1), 0.0)
     # prior rows: weight so each counts like PRIOR_SAMPLES rows of typical size
     scale = np.sqrt(np.mean(A * A, axis=0)) + 1e-9
     w = np.sqrt(PRIOR_SAMPLES) * scale
@@ -97,15 +106,16 @@ def window_residual_features(r, y, qd, eps, b_nom, tc_nom):
     # total friction ratio per joint: payload-corrected residual vs nominal friction, projected on the
     # motion direction, over moving samples only (near standstill friction is not observable)
     ratio, moving = [], []
-    for j, sj in ((0, s1), (1, s2)):
+    for j in range(nj):
+        sj = s[j]
         mask = np.abs(qd[j]) > MOVE_THRESHOLD
         moving.append(float(mask.mean()))
         if mask.sum() < MIN_MOVING:
             ratio.append(1.0)
             continue
         f_nom = b_nom[j] * qd[j][mask] + tc_nom[j] * sj[mask]
-        ratio.append(float(np.sum((r[j][mask] - theta[4] * y[j][mask]) * sj[mask]) / np.sum(f_nom * sj[mask])))
-    return np.array([ratio[0], ratio[1], theta[4], moving[0], moving[1]])
+        ratio.append(float(np.sum((r[j][mask] - theta[-1] * y[j][mask]) * sj[mask]) / np.sum(f_nom * sj[mask])))
+    return np.array(ratio + [theta[-1]] + moving)
 
 
 def run_residual_features(signals, payload_declared, cfg, window_s):

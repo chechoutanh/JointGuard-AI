@@ -37,13 +37,13 @@ class SinusoidTrajectory:
     def __call__(self, t):
         s, ds = _smoothstep(t, self.t_ramp)
         q, qd = [], []
-        for i in range(2):
+        for i in range(len(self.center)):
             w = 2.0 * math.pi * self.freq[i]
             sn = math.sin(w * t + self.phase[i])
             cs = math.cos(w * t + self.phase[i])
             q.append(self.center[i] + s * self.amp[i] * sn)
             qd.append(ds * self.amp[i] * sn + s * self.amp[i] * w * cs)
-        return (q[0], q[1]), (qd[0], qd[1])
+        return tuple(q), tuple(qd)
 
     def to_dict(self):
         return {"kind": self.kind, "center": self.center, "amp": self.amp,
@@ -54,7 +54,7 @@ class PointToPointTrajectory:
     kind = "p2p"
 
     def __init__(self, waypoints, move_times, dwell_times):
-        """waypoints: list of (q1, q2); segment k moves waypoints[k] -> waypoints[k+1]
+        """waypoints: list of joint tuples (q1, q2, ...); segment k moves waypoints[k] -> waypoints[k+1]
         in move_times[k] seconds after dwelling dwell_times[k] seconds at waypoints[k]."""
         self.waypoints = [tuple(map(float, w)) for w in waypoints]
         self.move_times = list(map(float, move_times))
@@ -72,13 +72,13 @@ class PointToPointTrajectory:
             T = self.move_times[k]
             if t < ts:
                 w = self.waypoints[k]
-                return w, (0.0, 0.0)
+                return w, (0.0,) * len(w)
             if t < ts + T:
                 s, ds = _smoothstep(t - ts, T)
                 a, b = self.waypoints[k], self.waypoints[k + 1]
-                return ((a[0] + s * (b[0] - a[0]), a[1] + s * (b[1] - a[1])),
-                        (ds * (b[0] - a[0]), ds * (b[1] - a[1])))
-        return self.waypoints[-1], (0.0, 0.0)
+                return (tuple(ai + s * (bi - ai) for ai, bi in zip(a, b)),
+                        tuple(ds * (bi - ai) for ai, bi in zip(a, b)))
+        return self.waypoints[-1], (0.0,) * len(self.waypoints[-1])
 
     def to_dict(self):
         return {"kind": self.kind, "waypoints": self.waypoints,
@@ -99,7 +99,7 @@ def within_limits(traj, duration, joint_limits, margin, dt=0.01):
     """True if the reference stays inside joint limits (minus margin) for the whole run."""
     for t in np.arange(0.0, duration + dt, dt):
         q, _ = traj(float(t))
-        for i in range(2):
+        for i in range(len(q)):
             lo, hi = joint_limits[i]
             if not (lo + margin <= q[i] <= hi - margin):
                 return False
