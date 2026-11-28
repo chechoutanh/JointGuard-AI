@@ -251,7 +251,7 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
     <div class="top-end">
       <nav aria-label="Sections">
         <a href="#questions">Scope</a><a href="#arm">The arm</a><a href="#fault">The fault</a><a href="#hard">Why it's hard</a>
-        <a href="#features">What the AI reads</a><a href="#alarm">Alarm rule</a><a href="#diagnosis">Diagnosis</a><a href="#results">Results</a><a href="#followup">Follow-up</a><a href="#limits">Limits</a><a href="#built">My role</a><a href="#files">Files</a>
+        <a href="#features">What the AI reads</a><a href="#alarm">Alarm rule</a><a href="#diagnosis">Diagnosis</a><a href="#results">Results</a><a href="#followup">Follow-up</a><a href="#kuka">7-joint arm</a><a href="#limits">Limits</a><a href="#built">My role</a><a href="#files">Files</a>
       </nav>
       <button type="button" class="theme-btn" id="themeBtn" aria-label="Switch to dark mode" title="Switch to dark mode">
         <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -550,6 +550,32 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
     </div>
   </section>
 
+  <section class="step" id="kuka">
+    <div class="step-head"><span class="label">Stage 9 · Generalisation check</span><h2>Does it work on a 7-joint industrial arm?</h2></div>
+    <div class="prose">
+      <p>A two-joint planar arm is a simple case. To test whether the idea depends on it, I simulated a <b>KUKA LBR iiwa</b>, a 7-joint collaborative arm with full 3-D coupled dynamics. Its rigid-body model comes from the URDF shipped with pybullet, used only to compute the dynamics. The loop is the same as before: integration at 1 kHz, a PD + gravity controller at 100 Hz that knows only the declared payload, noisy sensors, and friction faults on one of the 7 joints.</p>
+      <p>I carried the physics rule over <b>without redesigning it</b>: one friction ratio per joint, alarm when the largest one is too high. The same code, now written for any number of joints, uses the same acceleration estimate and prior. Only the alarm threshold was chosen again, on validation runs (it came out at 1.5). A held-out stress set has heavier payloads (3–5 kg), faster motion, and point-to-point moves that validation never contains.</p>
+    </div>
+    <figure class="figure">
+      <h3>KUKA iiwa · 186 simulated runs · detection only</h3>
+      <span class="label">Test: 62 runs, same operating range as validation · Stress: 62 held-out runs</span>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Set · detector</th><th class="r">Faults detected</th><th class="r">False alarms / healthy min</th><th class="r">Healthy runs with a false alarm</th><th class="r">Median delay</th></tr></thead>
+        <tbody>
+          <tr><td>Test · <b>physics rule, 7 joints</b></td><td class="r"><b>42 / 42</b></td><td class="r">0.48</td><td class="r">5 / 20</td><td class="r">0.5 s</td></tr>
+          <tr><td>Test · error-threshold baseline</td><td class="r">20 / 42</td><td class="r">0.97</td><td class="r">0 / 20</td><td class="r">1.3 s</td></tr>
+          <tr><td>Stress · <b>physics rule, 7 joints</b></td><td class="r"><b>42 / 42</b></td><td class="r"><b>0.85</b></td><td class="r">6 / 20</td><td class="r">0.6 s</td></tr>
+          <tr><td>Stress · error-threshold baseline</td><td class="r">17 / 42</td><td class="r">3.55</td><td class="r">10 / 20</td><td class="r">4.2 s</td></tr>
+        </tbody>
+      </table></div>
+      <figcaption>The physics rule caught 6 of 6 faults on every joint, in both sets, including the wrist joints whose friction is small. The baseline missed every base-joint fault on the test set: a stiff, heavily loaded joint barely changes its tracking error when friction rises. Source: <code>results/kuka/summary.csv</code>, <code>results/kuka/per_joint.csv</code>; details in <code>docs/KUKA_EXPERIMENT.md</code>.</figcaption>
+    </figure>
+    <div class="prose">
+      <p><b>Where it still fails.</b> 0.85 false alarms per healthy minute on the stress set is above my 0.5 target. All 11 of those false alarms happened on point-to-point motion, the same weak spot as on the two-joint arm. Almost all came from joints 2 and 4, the shoulder and elbow. These joints carry the largest gravity and inertia torques relative to their friction, so a small error in the acceleration estimate looks like a large change in friction. I did not tune anything after seeing these numbers, so the stress set stays a fair test.</p>
+      <p>The URDF masses and inertias are approximate, not KUKA's identified parameters, and the detector uses the same model as the simulator. This shows that the method carries over to a more complex arm. It does not show that it works on a real iiwa.</p>
+    </div>
+  </section>
+
   <!-- 7 -->
   <section class="step" id="limits">
     <div class="step-head"><span class="label">Limits</span><h2>What this project does not show</h2></div>
@@ -564,7 +590,7 @@ footer { padding-block: 48px 40px; margin-top: 56px; border-top: 1px solid var(-
     </ul>
     <div class="prose">
       <h3>Next steps</h3>
-      <p>The physics-residual features are done for detection (see the follow-up above). Next: add point-to-point motion to training, use the friction ratio for diagnosis too, and test whether the residual still works when the nominal model is not exact, which is always the case on a real arm.</p>
+      <p>The physics-residual features are done for detection (see the follow-up above), and the rule carries over to a simulated 7-joint KUKA iiwa. Next: reduce false alarms on point-to-point motion and on heavily loaded joints, add point-to-point motion to training, use the friction ratio for diagnosis too, and test whether the residual still works when the nominal model is not exact, which is always the case on a real arm.</p>
     </div>
   </section>
 
@@ -585,7 +611,8 @@ python -m scripts.run_pipeline --mode standard
 python -m scripts.train_diagnosis --data data/standard --model models/standard
 python -m scripts.evaluate_diagnosis --data data/standard --model models/standard --results results/standard
 python -m scripts.run_demo --model models/standard
-python -m scripts.export_web_demo --model models/standard</pre>
+python -m scripts.export_web_demo --model models/standard
+python -m scripts.kuka_experiment</pre>
         <p style="font-size:.85rem;color:var(--muted)">Seed 20261024 · Python 3.13 · scikit-learn 1.9.1</p>
       </div>
     </div>
@@ -612,7 +639,8 @@ window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\
     { label: "Source code", desc: "GitHub repository: simulator, models, tests and scripts", href: "https://github.com/chechoutanh/JointGuard-AI" },
     { label: "Technical report (PDF)", desc: "8-page write-up of methods, results, the physics-residual follow-up and limitations", href: "jointguard_report.pdf" },
     { label: "Detailed results report", desc: "Every table and figure, generated automatically from the result files", href: "https://github.com/chechoutanh/JointGuard-AI/blob/main/reports/standard/report_en.md" },
-    { label: "Follow-up: physics-residual features", desc: "Method, the failed first version, the fresh stress sets and all results", href: "https://github.com/chechoutanh/JointGuard-AI/blob/main/docs/RESIDUAL_EXPERIMENT.md" }
+    { label: "Follow-up: physics-residual features", desc: "Method, the failed first version, the fresh stress sets and all results", href: "https://github.com/chechoutanh/JointGuard-AI/blob/main/docs/RESIDUAL_EXPERIMENT.md" },
+    { label: "Generalisation check: 7-joint KUKA iiwa", desc: "Set-up, results per joint, where the false alarms come from, limitations", href: "https://github.com/chechoutanh/JointGuard-AI/blob/main/docs/KUKA_EXPERIMENT.md" }
   ];
   const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const shown = LINKS.filter(l => l.href);
